@@ -21,31 +21,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'; // Removed UploadCloud as it's not used
-import { Trash2, Edit, Award, PlusCircle, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
+} from '@/components/ui/table';
+import { Trash2, Edit, Award, PlusCircle, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
 
 interface ScholarshipData {
-  id: string; // UUID
+  id: string;
   name: string;
   short_name: string | null;
   provider: string;
   logo_url: string | null;
   description: string | null;
-  general_eligibility: string[]; // Di-handle sebagai string dengan newline di textarea
-  benefits: string[]; // Di-handle sebagai string dengan newline di textarea
+  general_eligibility: string[];
+  benefits: string[];
   website_url: string | null;
   contact_info: string | null;
   storage_path_logo: string | null;
   created_at: string;
 }
 
-// Untuk form, eligibility dan benefits akan jadi string tunggal
 type ScholarshipFormData = Omit<ScholarshipData, 'id' | 'created_at' | 'logo_url' | 'storage_path_logo' | 'general_eligibility' | 'benefits'> & {
   general_eligibility_text: string;
   benefits_text: string;
-  current_logo_url?: string | null; // Untuk menampilkan logo yang sudah ada
+  current_logo_url?: string | null;
 };
 
 const initialFormData: ScholarshipFormData = {
@@ -82,7 +81,6 @@ export default function BeasiswaCMSPage() {
       .order('name', { ascending: true });
 
     if (fetchError) {
-      console.error('Error fetching scholarships:', fetchError);
       setError('Gagal memuat daftar beasiswa.');
     } else {
       setScholarships(data || []);
@@ -139,13 +137,12 @@ export default function BeasiswaCMSPage() {
       const fileName = `${Date.now()}_${selectedLogoFile.name.replace(/\s+/g, '_')}`;
       const filePath = `beasiswa_logos/${fileName}`;
 
-      // Hapus logo lama jika ada dan logo baru diunggah
       if (editingId && storagePathLogo) {
-        await supabase.storage.from('beasiswa').remove([storagePathLogo]); // Ganti 'beasiswa' dengan nama bucket Anda
+        await supabase.storage.from('beasiswa').remove([storagePathLogo]);
       }
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('beasiswa') // Ganti 'beasiswa' dengan nama bucket Anda
+        .from('beasiswa')
         .upload(filePath, selectedLogoFile, { cacheControl: '3600', upsert: false });
 
       if (uploadError) {
@@ -153,7 +150,7 @@ export default function BeasiswaCMSPage() {
         setIsSubmitting(false);
         return;
       }
-      const { data: publicUrlData } = supabase.storage.from('beasiswa').getPublicUrl(filePath); // Ganti 'beasiswa'
+      const { data: publicUrlData } = supabase.storage.from('beasiswa').getPublicUrl(filePath);
       logoUrl = publicUrlData.publicUrl;
       storagePathLogo = filePath;
     }

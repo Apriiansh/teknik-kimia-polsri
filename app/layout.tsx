@@ -1,4 +1,5 @@
 import { Poppins, Montserrat } from "next/font/google";
+// @ts-ignore
 import "./globals.css";
 
 import LayoutWrapper from "@/components/LayoutWrapper";
@@ -20,7 +21,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata = {
-  metadataBase: new URL(defaultUrl), // Tambahkan baris ini
+  metadataBase: new URL(defaultUrl), 
   title: "Sistem Informasi Teknik Kimia",
   description: "Teknik Kimia Politeknik Negeri Sriwijaya",
   keywords: "Teknik Kimia, Politeknik Negeri Sriwijaya, Tekkim, Tekkim Polsri, Kimia Polsri",

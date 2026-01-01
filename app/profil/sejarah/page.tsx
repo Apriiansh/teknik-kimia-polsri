@@ -8,7 +8,6 @@ interface SejarahItem {
     tahun: string;
     keterangan: string | null;
     urutan: number | null;
-    // Kolom deskriptif, opsional
     judul_utama?: string | null;
     paragraf_intro_1?: string | null;
     paragraf_intro_2?: string | null;
@@ -17,7 +16,7 @@ interface SejarahItem {
     created_at?: string; 
 }
 
-const DESKRIPSI_TAHUN_MARKER = 'DESKRIPSI_UMUM_SEJARAH'; // Harus sama dengan di CMS
+const DESKRIPSI_TAHUN_MARKER = 'DESKRIPSI_UMUM_SEJARAH'; 
 
 const Sejarah: FC = () => {
     const [milestones, setMilestones] = useState<SejarahItem[]>([]);
@@ -72,7 +71,7 @@ const Sejarah: FC = () => {
         <main className="bg-gradient-to-b from-gray-50 to-gray-200 min-h-screen py-8 px-6 md:px-10 font-sans">
             <section className="max-w-7xl mx-auto space-y-8">
                 <header className="text-center space-y-8">
-                    <h1 className="text-3xl font-bold text-maroon-700 mb-12 text-center"> {/* mb-120 sepertinya typo, diganti mb-12 */}
+                    <h1 className="text-3xl font-bold text-maroon-700 mb-12 text-center">
                         {loading ? "Memuat judul..." : deskripsi?.judul_utama || "Sejarah Jurusan Teknik Kimia"}
                     </h1>
                     {loading ? (

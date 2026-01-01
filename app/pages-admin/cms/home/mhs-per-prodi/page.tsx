@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Save, ArrowLeft, Users, Loader } from 'lucide-react';
-import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
+import SidebarAdmin from '@/components/SidebarAdmin';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 
@@ -22,14 +22,12 @@ export default function EditJurusanStats() {
     const [saveStatus, setSaveStatus] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch data dari Supabase saat komponen dimuat
     useEffect(() => {
         async function fetchData() {
             setIsFetching(true);
             setError(null);
 
             try {
-                // Fetch semua data statistik jurusan
                 const { data, error } = await supabase
                     .from('jurusan_stats')
                     .select('*')
@@ -39,7 +37,6 @@ export default function EditJurusanStats() {
 
                 setStats(data);
             } catch (error) {
-                console.error('Error fetching data:', error);
                 setError('Gagal mengambil data dari database');
             } finally {
                 setIsFetching(false);
@@ -78,7 +75,6 @@ export default function EditJurusanStats() {
 
             setSaveStatus('success');
         } catch (error) {
-            console.error('Error updating data:', error);
             setError('Gagal menyimpan perubahan ke database');
             setSaveStatus('error');
         } finally {
@@ -86,7 +82,6 @@ export default function EditJurusanStats() {
         }
     };
 
-    // Memisahkan data program studi dan tenaga pendidik
     const prodiStats = stats.filter(stat => stat.stat_type === 'program_studi');
     const pendidikStats = stats.filter(stat => stat.stat_type === 'tenaga_pendidik');
 
@@ -113,9 +108,8 @@ export default function EditJurusanStats() {
                         </div>
                     ) : (
                         <>
-                            {/* Header */}
                             <div className="flex justify-between items-center mb-8">
-                                <div className="flex items-center"> {/* Link dengan ikon ArrowLeft dihapus */}
+                                <div className="flex items-center">
                                     <h1 className="text-2xl font-bold text-foreground">
                                         Edit Statistik Jurusan
                                     </h1>

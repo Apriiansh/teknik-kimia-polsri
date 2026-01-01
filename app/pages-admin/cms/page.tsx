@@ -1,20 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import SidebarAdmin from '@/components/SidebarAdmin'; // Impor SidebarAdmin
+import SidebarAdmin from '@/components/SidebarAdmin';
 import {
-  Newspaper,      // Untuk Berita & Pengumuman
-  Activity,       // Untuk Kegiatan
-  Calendar,       // Untuk Kalender Akademik
-  Award,          // Untuk Beasiswa
-  MessageSquare,  // Untuk Testimoni Alumni
-  Scroll,         // Untuk Sejarah
-  Target,         // Untuk Visi & Misi
-  Users,          // Untuk Struktur Organisasi
-  BarChart3,      // Untuk Statistik Mahasiswa (sebelumnya Mahasiswa per Prodi)
-  GraduationCap,  // Untuk Program Studi
-  FlaskConical,   // Untuk Laboratorium
-  FileText } from 'lucide-react'; // Untuk ikon judul utama
+  Newspaper,
+  Activity,
+  Calendar,
+  Award,
+  MessageSquare,
+  Scroll,
+  Target,
+  Users,
+  BarChart3,
+  GraduationCap,
+  FlaskConical,
+  FileText } from 'lucide-react';
 import { JSX } from 'react';
 
 interface ContentItem {
@@ -24,7 +24,6 @@ interface ContentItem {
 }
 
 export default function CMSPage() {
-  // Daftar item konten disesuaikan dengan menu di SidebarAdmin
   const contentItems: ContentItem[] = [
     {
       name: 'Berita & Pengumuman',
@@ -79,15 +78,12 @@ export default function CMSPage() {
   ];
 
   return (
-    // Menghapus 'flex' dari div root, karena SidebarAdmin diasumsikan fixed/absolute
-    // dan main content akan menggunakan margin untuk menghindarinya.
     <div className="min-h-screen theme-admin">
-      <SidebarAdmin /> {/* Tampilkan SidebarAdmin */}
-      {/* Area Konten Utama: tambahkan ml-72, w-calc, bg-background, dan overflow-y-auto */}
+      <SidebarAdmin />
       <main className="ml-72 flex-1 p-6 md:p-8 bg-background w-[calc(100%-18rem)] min-h-screen overflow-y-auto">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-foreground flex items-center"> {/* Gunakan text-foreground */}
-            <FileText className="mr-4 w-8 h-8 text-primary" /> {/* Gunakan text-primary */}
+          <h1 className="text-3xl font-bold mb-8 text-foreground flex items-center">
+            <FileText className="mr-4 w-8 h-8 text-primary" />
             Manajemen Konten Sistem Informasi
           </h1>
 

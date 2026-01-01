@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback, useMemo } from 'react'; // Removed unused useRef
+import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import {
   Card,
@@ -21,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UploadCloud, Trash2, BookOpen, PlusCircle, ListFilter } from 'lucide-react'; // Removed unused ArrowUp, ArrowDown
-import { v4 as uuidv4 } from 'uuid'; // Used for generating unique IDs for list items
+import { UploadCloud, Trash2, BookOpen, PlusCircle, ListFilter } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import SidebarAdmin from '@/components/SidebarAdmin';
 
 // --- Interfaces ---

@@ -1,11 +1,10 @@
-// app/pages-admin/cms/posts/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client'; // Icons
-import { Pencil, Trash2, PlusCircle, Search, Newspaper } from 'lucide-react'; // Filter, Clock, Eye removed as they are not used here. Newspaper added.
+import { createClient } from '@/utils/supabase/client';
+import { Pencil, Trash2, PlusCircle, Search, Newspaper } from 'lucide-react';
 import Link from 'next/link';
-import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
+import SidebarAdmin from '@/components/SidebarAdmin';
 
 interface Post {
     id: string;
@@ -47,7 +46,6 @@ export default function PostsManagement() {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Error fetching posts:', error);
         } else {
             setPosts(data || []);
         }
@@ -61,7 +59,6 @@ export default function PostsManagement() {
             .order('name');
 
         if (error) {
-            console.error('Error fetching categories:', error);
         } else {
             setCategories(data || []);
         }
@@ -75,10 +72,9 @@ export default function PostsManagement() {
                 .eq('id', id);
 
             if (error) {
-                console.error('Error deleting post:', error);
                 alert('Failed to delete post');
             } else {
-                fetchPosts(); // Refresh the posts list
+                fetchPosts();
             }
         }
     }
@@ -134,9 +130,8 @@ export default function PostsManagement() {
                         <h1 className="text-2xl font-bold text-foreground flex items-center">
                             <Newspaper className="mr-3 h-6 w-6" /> Manajemen Berita
                         </h1>
-                        {/* Pastikan path Link ini benar, jika Anda menggunakan [action]/page.tsx, mungkin perlu /create */}
-                        <Link href="/pages-admin/cms/info/posts/create"> 
-                            <button className="flex items-center bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition duration-200 text-sm font-medium"> {/* Styling disesuaikan */}
+                        <Link href="/pages-admin/cms/info/posts/create">
+                            <button className="flex items-center bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition duration-200 text-sm font-medium">
                                 <PlusCircle className="w-5 h-5 mr-2" />
                                 <span>Tambah Berita</span>
                             </button>

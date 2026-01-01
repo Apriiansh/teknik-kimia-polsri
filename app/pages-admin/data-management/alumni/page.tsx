@@ -1,14 +1,10 @@
-'use client'; // Mengubah menjadi Client Component
+'use client'; 
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client'; // Untuk fetch data di client
-// import { revalidatePath } from 'next/cache'; // Tidak digunakan langsung di client component
-// import { redirect } from 'next/navigation'; // Tidak digunakan langsung di client component (kecuali via actions)
-import SidebarAdmin from '@/components/SidebarAdmin'; // Pastikan path ini benar
+import { createClient } from '@/utils/supabase/client'; 
+import SidebarAdmin from '@/components/SidebarAdmin';
 import { UserPlus, FileEdit, Trash2, Search, AlertCircle, Filter, Loader2, Users2Icon, KeyRound, RefreshCw, ArrowLeft } from 'lucide-react';
-import { addAlumniAction, updateAlumniAction, deleteAlumniAction } from '@/app/alumni_actions'; // Impor server actions
-
-// --- Tipe Data dan State untuk Client Component ---
+import { addAlumniAction, updateAlumniAction, deleteAlumniAction } from '@/app/alumni_actions';
 interface AlumniData {
     id: number;
     nama: string;
@@ -55,12 +51,12 @@ export default function AlumniManagementPage() {
         prodi: '',
         angkatan: '',
         pekerjaan: '',
-        email: '', // Tambahkan email
-        password: '', // Tambahkan password
-        confirmPassword: '', // Tambahkan konfirmasi password
+        email: '', 
+        password: '', 
+        confirmPassword: '',
     });
 
-    const supabase = createClient(); // Client-side Supabase
+    const supabase = createClient();
 
     const fetchAlumni = async () => {
         setLoading(true);
@@ -82,7 +78,6 @@ export default function AlumniManagementPage() {
     };
 
     useEffect(() => {
-        // Check URL for messages (jika ada redirect dari server action sebelumnya)
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
         const message = urlParams.get('message');
@@ -97,10 +92,9 @@ export default function AlumniManagementPage() {
         fetchAlumni();
     }, []);
 
-    // Efek untuk mereset filter angkatan setiap kali filter prodi berubah
     useEffect(() => {
-        setFilterAngkatan(''); // Selalu reset filter angkatan ketika prodi berubah
-    }, [filterProdi]); // Hanya bergantung pada filterProdi
+        setFilterAngkatan(''); 
+    }, [filterProdi]); 
 
 
     const showAlert = (message: string, type: 'success' | 'error') => {
@@ -120,10 +114,9 @@ export default function AlumniManagementPage() {
             prodi: alumniData.prodi || '',
             angkatan: alumniData.angkatan?.toString() || '',
             pekerjaan: alumniData.pekerjaan || '',
-            email: '', // Tambahkan nilai default untuk email
-            password: '', // Tambahkan nilai default untuk password
-            confirmPassword: '', // Tambahkan nilai default untuk confirmPassword
-            // testimoni: alumniData.testimoni || '', // Dihapus
+            email: '', 
+            password: '', 
+            confirmPassword: '', 
         });
         setSelectedAlumni(alumniData);
         setEditMode(true);
@@ -157,15 +150,12 @@ export default function AlumniManagementPage() {
             return;
         }
 
-        // Ambil nama depan (kata pertama sebelum spasi)
         const firstName = editData.nama.split(' ')[0].toLowerCase();
 
-        // Ambil 2 digit terakhir dari angkatan
         const angkatanLast2 = editData.angkatan.length >= 2
             ? editData.angkatan.slice(-2)
             : editData.angkatan.padStart(2, '0');
 
-        // Buat password
         const generatedPassword = `${firstName}${angkatanLast2}`;
 
         setEditData(prev => ({
@@ -186,7 +176,7 @@ export default function AlumniManagementPage() {
 
         if (result.type === 'success') {
             showAlert(result.message, 'success');
-            fetchAlumni(); // Re-fetch data
+            fetchAlumni(); 
             setEditMode(false);
             setAddMode(false);
         } else {
@@ -194,7 +184,6 @@ export default function AlumniManagementPage() {
         }
     };
 
-    // Opsi angkatan dinamis berdasarkan filterProdi
     const angkatanOptionsForFilter = React.useMemo(() => {
         let angkatans: (number | null)[];
         if (filterProdi) {
@@ -224,7 +213,6 @@ export default function AlumniManagementPage() {
             <SidebarAdmin />
             <main className="ml-72 px-2 py-4 md:px-4 md:py-6 bg-background w-[calc(100%-18rem)] min-h-screen overflow-y-auto">
                 <div className="w-full">
-                    {/* Judul Utama - Hanya tampil jika tidak dalam mode edit atau tambah */}
                     {!(editMode || addMode) && (
                         <h1 className="text-2xl font-bold mb-6 text-foreground flex items-center">
                             <Users2Icon className="mr-3 w-6 h-6 text-primary" />
@@ -239,9 +227,8 @@ export default function AlumniManagementPage() {
                         </div>
                     )}
 
-                    {/* Judul untuk Mode Tambah */}
                     {addMode && (
-                        <div className="flex items-center"> {/* mb-1 dihapus untuk menghilangkan jarak */}
+                        <div className="flex items-center"> 
                             <button
                                 onClick={() => {
                                     setAddMode(false);
@@ -255,9 +242,8 @@ export default function AlumniManagementPage() {
                         </div>
                     )}
 
-                    {/* Judul untuk Mode Edit */}
                     {editMode && selectedAlumni && (
-                        <div className="flex items-center"> {/* mb-1 dihapus untuk menghilangkan jarak */}
+                        <div className="flex items-center">
                             <button
                                 onClick={() => {
                                     setEditMode(false);
@@ -272,8 +258,7 @@ export default function AlumniManagementPage() {
                         </div>
                     )}
 
-                    <div className={`${(editMode || addMode) ? 'mt-4' : 'my-6'} flex flex-col md:flex-row justify-between items-center gap-4`}> {/* Kurangi margin jika dalam mode add/edit */}
-                        {/* Sembunyikan search input dan tombol "Tambah Alumni" utama jika dalam mode tambah atau edit */}
+                    <div className={`${(editMode || addMode) ? 'mt-4' : 'my-6'} flex flex-col md:flex-row justify-between items-center gap-4`}> 
                         {!(editMode || addMode) && (
                             <>
                                 <div className="relative flex-grow w-full md:w-1/2 lg:w-1/3">
@@ -288,7 +273,7 @@ export default function AlumniManagementPage() {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex w-full md:w-auto"> {/* Dibungkus flex agar layout tombol Tambah Alumni tetap konsisten */}
+                                <div className="flex w-full md:w-auto"> 
                                     <button
                                         onClick={startAdd}
                                         className="bg-primary text-primary-foreground px-4 py-2 rounded-md flex items-center hover:bg-primary/90 w-full md:w-auto justify-center"
@@ -301,7 +286,6 @@ export default function AlumniManagementPage() {
                         )}
                     </div>
 
-                    {/* Sembunyikan filter jika dalam mode tambah atau edit */}
                     {!(editMode || addMode) && (
                         <>
                             <div className="bg-card rounded-xl shadow-lg overflow-hidden mb-8">
@@ -342,7 +326,6 @@ export default function AlumniManagementPage() {
                                             ))}
                                         </div>
                                     </div>
-                                    {/* Filter Angkatan - Muncul setelah Prodi dipilih */}
                                     {filterProdi && (
                                         <div>
                                             <label htmlFor="angkatanFilterAlumni" className="block text-sm font-medium text-muted-foreground mb-1.5">
@@ -384,16 +367,15 @@ export default function AlumniManagementPage() {
 
 
                     {(editMode || addMode) && (
-                        <div className="relative mb-6 bg-card p-6 rounded-lg shadow text-card-foreground"> {/* mt-1 dihapus dari card form */}
-                            {/* Tombol Refresh Data (Icon Only) di kanan atas form */}
+                        <div className="relative mb-6 bg-card p-6 rounded-lg shadow text-card-foreground"> 
                             <button
                                 type="button"
                                 onClick={() => {
-                                    fetchAlumni(); // Muat ulang data list
-                                    setEditMode(false); // Tutup form
-                                    setAddMode(false);  // Tutup form
+                                    fetchAlumni();
+                                    setEditMode(false);
+                                    setAddMode(false);  
                                     showAlert('Data alumni telah dimuat ulang.', 'success');
-                                }} // Fungsi tombol refresh tetap
+                                }} 
                                 className="absolute top-4 right-4 p-2 bg-muted text-muted-foreground rounded-md hover:bg-muted/80"
                                 title="Muat Ulang Data Alumni dan Tutup Form"
                                 disabled={formSubmitting}
@@ -403,10 +385,9 @@ export default function AlumniManagementPage() {
                             <form onSubmit={(e) => handleFormSubmit(e, editMode ? updateAlumniAction : addAlumniAction)} encType="multipart/form-data">
                                 {editMode && <input type="hidden" name="id" value={editData.id} />}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-11"> {/* Jarak dikurangi lagi, mt-11 (2.75rem) */}
-                                    {/* Email - Hanya saat addMode */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-11"> 
                                     {addMode && (
-                                        <div className="md:col-span-2"> {/* Email dibuat full width saat addMode */}
+                                        <div className="md:col-span-2"> 
                                             <label className="block text-sm font-medium mb-1">Email</label>
                                             <input type="email" name="email" value={editData.email} onChange={handleInputChange} className="w-full border border-input rounded-md px-3 py-2 bg-background text-foreground" required={addMode} />
                                         </div>
@@ -431,7 +412,6 @@ export default function AlumniManagementPage() {
                                         <input type="text" name="pekerjaan" value={editData.pekerjaan} onChange={handleInputChange} className="w-full border border-input rounded-md px-3 py-2 bg-background text-foreground" />
                                     </div>
                                     
-                                    {/* Password fields - Hanya saat addMode */}
                                     {addMode && (
                                         <>
                                             <div>
@@ -467,7 +447,6 @@ export default function AlumniManagementPage() {
                         </div>
                     )}
 
-                    {/* Sembunyikan tabel jika dalam mode tambah atau edit */}
                     {!(editMode || addMode) && (
                         <div className="bg-card rounded-lg shadow overflow-hidden">
                             {loading ? (

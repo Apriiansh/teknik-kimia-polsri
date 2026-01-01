@@ -5,26 +5,26 @@ import { createClient } from '@/utils/supabase/client';
 import { Save, ArrowLeft, Image as ImageIcon, Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
-import NextImage from 'next/image'; // Untuk preview
+import SidebarAdmin from '@/components/SidebarAdmin';
+import NextImage from 'next/image'; 
 
 interface KegiatanItem {
     id: string;
     description: string | null;
-    image_urls: string[]; // Changed to array of strings
+    image_urls: string[]; 
     created_at?: string;
     updated_at?: string | null;
 }
 
 interface PreviewItem {
-    id: string; // Unique ID for React key, can be temp
-    url: string; // Blob URL for new files, or existing Supabase URL
-    file?: File; // The actual file object for new uploads
-    isNew: boolean; // True if this is a newly selected file, false if it's an existing one from DB
-    originalDbUrl?: string; // If isNew is false, this is the URL as stored in DB (used for deletion tracking)
+    id: string; 
+    url: string; 
+    file?: File; 
+    isNew: boolean; 
+    originalDbUrl?: string; 
 }
 
-const BUCKET_NAME = 'kegiatan-images'; // Sesuaikan dengan nama bucket Anda
+const BUCKET_NAME = 'kegiatan-images'; 
 
 export default function EditKegiatanPage() {
     const params = useParams();
@@ -84,7 +84,7 @@ export default function EditKegiatanPage() {
             const newPreviews: PreviewItem[] = [];
 
             for (const file of filesArray) {
-                if (file.size > 5 * 1024 * 1024) { // Max 5MB
+                if (file.size > 5 * 1024 * 1024) { 
                     setError(`File ${file.name} terlalu besar (maks 5MB).`);
                     continue; 
                 }
@@ -101,7 +101,7 @@ export default function EditKegiatanPage() {
                 });
             }
             setPreviewItems(prev => [...prev, ...newPreviews]);
-            e.target.value = ''; // Reset file input
+            e.target.value = '';
         }
     };
 
@@ -166,7 +166,6 @@ export default function EditKegiatanPage() {
         });
 
         try {
-            // 1. Delete images from storage that were marked for deletion
             if (dbUrlsToDelete.length > 0) {
                 const pathsToDelete = dbUrlsToDelete.map(url => extractImagePath(url)).filter(path => path !== '');
                 if (pathsToDelete.length > 0) {
@@ -179,7 +178,6 @@ export default function EditKegiatanPage() {
                 }
             }
 
-            // 2. Upload new files
             for (const file of newFilesToUpload) {
                 const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
                 const { data: uploadData, error: uploadError } = await supabase.storage
@@ -193,7 +191,6 @@ export default function EditKegiatanPage() {
                 finalImageUrls.push(publicUrlData.publicUrl);
             }
 
-            // 3. Update data in Supabase database
             const dataToUpdate: Omit<KegiatanItem, 'id' | 'created_at'> & { updated_at: string } = {
                 description: description.trim(),
                 image_urls: finalImageUrls,
@@ -202,12 +199,11 @@ export default function EditKegiatanPage() {
 
             const { error: updateError } = await supabase
                 .from('kegiatan')
-                .update(dataToUpdate as any) // Cast as any to bypass strict KegiatanItem type for update
+                .update(dataToUpdate as any) 
                 .eq('id', kegiatanId);
 
             if (updateError) throw new Error(`Gagal update kegiatan: ${updateError.message}`);
             
-            // Reset states related to file changes after successful save
             setDbUrlsToDelete([]);
 
             setTimeout(() => router.push('/pages-admin/cms/info/kegiatan'), 1500);
@@ -221,7 +217,6 @@ export default function EditKegiatanPage() {
     };
 
     if (loadingData) {
-        // Loading state with sidebar
         return (
             <div className="min-h-screen theme-admin">
                 <SidebarAdmin />
@@ -235,15 +230,14 @@ export default function EditKegiatanPage() {
         );
     }
 
-    if (!kegiatanId && !loadingData) { // If not loading and kegiatanId is somehow lost (should not happen if logic is correct)
-        // Error state with sidebar
+    if (!kegiatanId && !loadingData) { 
         return (
             <div className="min-h-screen theme-admin">
                 <SidebarAdmin />
                 <main className="ml-72 px-4 py-2 md:px-6 md:py-4 bg-background w-[calc(100%-18rem)] min-h-screen overflow-y-auto flex flex-col justify-center items-center">
-                    <AlertTriangle className="w-12 h-12 text-destructive mb-1" /> {/* Warna ikon disesuaikan */}
+                    <AlertTriangle className="w-12 h-12 text-destructive mb-1" /> 
                     <p className="text-destructive">{error || 'Tidak dapat menemukan data kegiatan.'}</p>
-                    <Link href="/pages-admin/cms/info/kegiatan" className="mt-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Kembali ke Daftar Kegiatan</Link> {/* Styling tombol disesuaikan */}
+                    <Link href="/pages-admin/cms/info/kegiatan" className="mt-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Kembali ke Daftar Kegiatan</Link> 
                 </main>
             </div>
         );
@@ -253,19 +247,18 @@ export default function EditKegiatanPage() {
         <div className="min-h-screen theme-admin">
             <SidebarAdmin />
             <main className="ml-72 px-4 py-2 md:px-6 md:py-4 bg-background w-[calc(100%-18rem)] min-h-screen overflow-y-auto">
-                {/* Header dipindahkan ke luar card */}
                 <div className="max-w-4xl mx-auto mb-2">
                     <div className="flex items-center">
-                        <Link href="/pages-admin/cms/info/kegiatan" className="text-foreground hover:text-foreground/80 mr-3 p-1 rounded-full hover:bg-muted transition-colors"> {/* Warna ikon disamakan dengan text-foreground */}
+                        <Link href="/pages-admin/cms/info/kegiatan" className="text-foreground hover:text-foreground/80 mr-3 p-1 rounded-full hover:bg-muted transition-colors"> 
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
-                        <h1 className="text-2xl font-semibold text-foreground">Edit Kegiatan</h1> {/* Font weight diubah dari bold ke semibold */}
+                        <h1 className="text-2xl font-semibold text-foreground">Edit Kegiatan</h1>
                     </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto bg-card p-2 md:p-4 rounded-lg shadow-xl border border-border"> {/* Styling disesuaikan */}
-                    {error && <div className="mb-1 p-2 bg-destructive/10 text-destructive border border-destructive/30 rounded-md flex items-center text-sm"><AlertTriangle className="w-5 h-5 mr-2" />{error}</div>} {/* Styling disesuaikan */}
-                    {success && <div className="mb-1 p-2 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 rounded-md flex items-center text-sm"><CheckCircle className="w-5 h-5 mr-2" />{success}</div>} {/* Styling disesuaikan */}
+                <div className="max-w-4xl mx-auto bg-card p-2 md:p-4 rounded-lg shadow-xl border border-border"> 
+                    {error && <div className="mb-1 p-2 bg-destructive/10 text-destructive border border-destructive/30 rounded-md flex items-center text-sm"><AlertTriangle className="w-5 h-5 mr-2" />{error}</div>} 
+                    {success && <div className="mb-1 p-2 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 rounded-md flex items-center text-sm"><CheckCircle className="w-5 h-5 mr-2" />{success}</div>} 
 
                     <form id="editKegiatanForm" onSubmit={handleSubmit} className="space-y-2">
                         <div>
@@ -284,7 +277,7 @@ export default function EditKegiatanPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemovePreviewItem(item.id)}
-                                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity" // Styling disesuaikan
+                                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity" 
                                                 title="Hapus gambar ini"
                                             >
                                                 <XCircle size={18} />
@@ -293,11 +286,10 @@ export default function EditKegiatanPage() {
                                     ))}
                                 </div>
                             )}
-                            <p className="mt-1 text-xs text-muted-foreground/80">Format: JPG, PNG, GIF, WEBP. Maks: 5MB per file. Tambah gambar baru atau hapus yang lama.</p> {/* Styling disesuaikan */}
+                            <p className="mt-1 text-xs text-muted-foreground/80">Format: JPG, PNG, GIF, WEBP. Maks: 5MB per file. Tambah gambar baru atau hapus yang lama.</p> 
                         </div>
                     </form>
                 </div>
-                {/* Tombol Simpan di luar card */}
                 <div className="max-w-4xl mx-auto mt-6 flex justify-end">
                     <button type="submit" form="editKegiatanForm" disabled={saving || loadingData} className="px-6 py-2.5 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:bg-primary/50 flex items-center">
                         {saving && <Clock className="animate-spin w-4 h-4 mr-2" />}

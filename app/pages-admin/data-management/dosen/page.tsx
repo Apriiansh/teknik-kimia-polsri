@@ -1,13 +1,11 @@
 'use client';
-import React, { useState, useEffect, Suspense } from 'react'; // Tambahkan React dan Suspense
-import Link from 'next/link';
+import React, { useState, useEffect, Suspense, useMemo, useCallback } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { User, FileEdit, Trash2, Search, AlertCircle, UserPlus, KeyRound, Upload, Filter, GraduationCap, Users2Icon, Loader2, Save, RefreshCw, ArrowLeft } from 'lucide-react';
+import { User, FileEdit, Trash2, Search, AlertCircle, UserPlus, KeyRound, Filter, Users2Icon, Loader2, Save, RefreshCw, ArrowLeft } from 'lucide-react';
 import SidebarAdmin from '@/components/SidebarAdmin';
 import { addDosenAction, updateDosenAction, deleteDosenAction } from '@/app/dosen_actions';
 
-// Fungsi utilitas untuk mengubah file ke Base64 Data URL
 const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -16,7 +14,6 @@ const fileToBase64 = (file: File): Promise<string> => {
         reader.readAsDataURL(file);
     });
 };
-// Define TypeScript interfaces
 interface DosenData {
     id_dsn: string;
     email: string;
@@ -36,11 +33,7 @@ interface AlertState {
     type: 'success' | 'error' | '';
 }
 
-// CurrentEditDataState is not needed if we use editData for both add and edit
-// interface CurrentEditDataState { ... }
-
-
-function DosenManagementContent() { // Ubah nama komponen ini
+function DosenManagementContent() { 
     const [dosen, setDosen] = useState<DosenData[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -51,10 +44,13 @@ function DosenManagementContent() { // Ubah nama komponen ini
     const [addMode, setAddMode] = useState<boolean>(false);
     const [editMode, setEditMode] = useState<boolean>(false);
     const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
-    const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null); // Tambah state file foto
+    const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
     const [selectedRoleCategoryFilter, setSelectedRoleCategoryFilter] = useState<string>('');
     const [selectedProdiFilter, setSelectedProdiFilter] = useState<string>('');
     const [selectedStaffRoleFilter, setSelectedStaffRoleFilter] = useState<string>('');
+    
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [itemsPerPage, setItemsPerPage] = useState<number>(10);
     
     const [editData, setEditData] = useState({
         id_dsn: '',
@@ -70,12 +66,20 @@ function DosenManagementContent() { // Ubah nama komponen ini
         confirmPassword: '',
         current_foto: ''
     });
-    // Pindahkan console.log ke sini, setelah semua state dideklarasikan
-    console.log("Component Render: Initial/Re-render. Loading:", loading, "AddMode:", addMode, "EditMode:", editMode, "IsSubmitting:", isSubmitting);
+
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300); 
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const supabase = createClient();
-    const searchParams = useSearchParams(); // Hook untuk mengakses search parameters
-    const pathname = usePathname(); // Hook untuk mengakses current pathname
+    const searchParams = useSearchParams(); 
+    const pathname = usePathname(); 
 
 
     const prodiOptions = [
@@ -101,10 +105,7 @@ function DosenManagementContent() { // Ubah nama komponen ini
         "Pramu Gedung"
     ];
 
-    const fetchDosen = async () => {
-        console.log("fetchDosen: Memulai...");
-        console.log("fetchDosen: Setting loading state to true.");
-        
+    const fetchDosen = useCallback(async () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
@@ -112,73 +113,39 @@ function DosenManagementContent() { // Ubah nama komponen ini
                 .select('*')
                 .order('nama');
 
-            console.log("fetchDosen: Query Supabase selesai. Data:", data, "Error:", error);
-            if (error) {
-                // Log the error object directly, and also try to stringify it and log its message property
-                console.error('fetchDosen: Supabase returned an error object:', error);
-                console.error('fetchDosen: Supabase error stringified:', JSON.stringify(error, null, 2));
-                if (error.message) {
-                    console.error('fetchDosen: Supabase error message:', error.message);
-                }
-                throw error;
-            }
+            if (error) throw error;
             setDosen(data || []);
-            console.log("fetchDosen: State 'dosen' diupdate dengan", (data || []).length, "item.");
-        } catch (caughtError: any) { // Catch as 'any' to safely access potential properties
-            console.error('fetchDosen: Caught an error in catch block. Raw error:', caughtError);
-            console.error('fetchDosen: Caught error stringified:', JSON.stringify(caughtError, null, 2));
-            let displayMessage = 'Failed to load dosen data.';
-            if (caughtError && typeof caughtError.message === 'string' && caughtError.message.trim() !== '') {
-                displayMessage = `Failed to load dosen data: ${caughtError.message}`;
-            }
+        } catch (caughtError: any) {
+            const displayMessage = caughtError?.message 
+                ? `Failed to load dosen data: ${caughtError.message}`
+                : 'Failed to load dosen data.';
             showAlert(displayMessage, 'error');
             setDosen([]);
         } finally {
-            // Pastikan ini selalu terpanggil
-            console.log("fetchDosen: Blok finally tercapai.");
-            console.log("fetchDosen: Setting loading state to false.");
-            
-            console.log("fetchDosen: Blok finally, setLoading(false)");
             setLoading(false);
         }
-    };
+    }, [supabase]);
 
     useEffect(() => {
-        // Efek ini berjalan ketika searchParams berubah (misalnya, setelah redirect dengan query params)
-        // atau pada saat komponen pertama kali dimuat.
-        console.log("useEffect: Dipicu. Pathname:", pathname, "Search Params:", searchParams.toString());
         const type = searchParams.get('type');
-        const message = searchParams.get('message'); // Menggunakan searchParams.get()
+        const message = searchParams.get('message');
 
         if (type && message) {
-            console.log("useEffect: Menemukan type & message di URL:", type, message);
             showAlert(decodeURIComponent(message), type as 'success' | 'error');
-            // Bersihkan URL dari query parameters, tanpa memicu pengambilan data baru dengan sendirinya.
-            // Panggilan fetchDosen() di bawah ini akan menangani pembaruan data.
-            console.log("useEffect: Membersihkan URL dengan history.replaceState ke", pathname);
             window.history.replaceState({}, '', pathname);
-            // Setelah URL dibersihkan, useEffect akan berjalan lagi.
-            // Kita return di sini agar fetchDosen() tidak dipanggil di render ini,
-            // melainkan di render berikutnya setelah URL bersih.
             return;
         }
 
-        // Ambil data dosen pada saat awal dimuat dan setelah memproses pesan redirect.
-        // Ini hanya akan berjalan ketika type & message tidak ada di searchParams (termasuk setelah URL dibersihkan).
-        console.log("useEffect: Memanggil fetchDosen() (dari useEffect)");
         fetchDosen();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, pathname]); // Dependensi sudah benar
+    }, [searchParams, pathname, fetchDosen]);
 
     const showAlert = (message: string, type: 'success' | 'error') => {
         setAlert({ show: true, message, type });
         setTimeout(() => setAlert({ show: false, message: '', type: '' }), 3000);
-        console.log(`showAlert: Menampilkan alert type='${type}' dengan pesan: '${message}'`);
     };
 
     const confirmDelete = (dosenData: DosenData) => {
         setSelectedDosen(dosenData);
-        console.log("confirmDelete: Menampilkan konfirmasi delete untuk", dosenData.nama);
         setShowConfirmDelete(true);
     };
     
@@ -197,7 +164,6 @@ function DosenManagementContent() { // Ubah nama komponen ini
             confirmPassword: '',
             current_foto: dosenData.foto || ''
         });
-        console.log("startEdit: Memulai mode edit untuk", dosenData.nama);
         setPreviewPhoto(dosenData.foto); 
         setSelectedDosen(dosenData); 
         setEditMode(true);
@@ -213,13 +179,12 @@ function DosenManagementContent() { // Ubah nama komponen ini
             nidn: '',
             nuptk: '',
             prodi: '',
-            status_dosen: '', // Tetap kosong atau sesuaikan jika ada default lain
-            role: '', // Diubah dari 'Dosen' menjadi string kosong
+            status_dosen: '', 
+            role: '', 
             password: '',
             confirmPassword: '',
             current_foto: ''
         });
-        console.log("startAdd: Memulai mode add.");
         setPreviewPhoto(null);
         setAddMode(true);
         setEditMode(false); 
@@ -229,15 +194,14 @@ function DosenManagementContent() { // Ubah nama komponen ini
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setEditData(prev => ({ ...prev, [name]: value }));
-        console.log(`handleInputChange: Mengubah field '${name}' menjadi '${value}'`);
     };
     
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const base64 = await fileToBase64(file);
-            setPreviewPhoto(base64); // Simpan Base64 ke preview
-            setSelectedPhotoFile(file); // Simpan file jika perlu
+            setPreviewPhoto(base64); 
+            setSelectedPhotoFile(file); 
         } else {
             setPreviewPhoto(editMode && editData.current_foto ? editData.current_foto : null);
             setSelectedPhotoFile(null);
@@ -255,20 +219,15 @@ function DosenManagementContent() { // Ubah nama komponen ini
         const generatedPassword = `${firstName}${nipLast3}${nidnLast3}`;
         setEditData(prev => ({ ...prev, password: generatedPassword, confirmPassword: generatedPassword }));
         showAlert('Password berhasil dibuat', 'success');
-        console.log("generatePassword: Password dibuat.");
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        console.log("handleSubmit: Form disubmit. Setting isSubmitting(true).");
         setIsSubmitting(true);
         const formPayload = new FormData(event.currentTarget);
-        console.log("handleSubmit: FormData dibuat.");
 
-               // Simpan foto sebagai Base64 Data URL ke database
         let fotoBase64 = editData.current_foto;
         if (selectedPhotoFile && previewPhoto) {
-            // previewPhoto sudah berisi Base64 Data URL
             fotoBase64 = previewPhoto;
             formPayload.set('foto', fotoBase64);
         } else if (addMode) {
@@ -280,56 +239,89 @@ function DosenManagementContent() { // Ubah nama komponen ini
 
 
         if (addMode) {
-             console.log("handleSubmit: Memanggil addDosenAction.");
              await addDosenAction(formPayload);
              setAddMode(false);
-             console.log("handleSubmit: addDosenAction selesai. Setting addMode(false).");
         } else if (editMode && selectedDosen) { 
              await updateDosenAction(formPayload);
-             console.log("handleSubmit: Memanggil updateDosenAction.");
              setEditMode(false);
         }
         setIsSubmitting(false);
-        // Server action should handle redirect and message, which triggers useEffect to fetchDosen
     };
 
 
     const handleRoleCategoryFilterChange = (category: string) => {
         setSelectedRoleCategoryFilter(category);
         setSelectedProdiFilter('');
-        console.log("handleRoleCategoryFilterChange: Filter kategori diubah menjadi", category);
         setSelectedStaffRoleFilter('');
     };
 
-    const filteredDosen = dosen.filter(dsn => {
-        const searchMatch = searchTerm === '' ||
-            dsn.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            dsn.nip?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            dsn.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (dsn.prodi && dsn.prodi.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (dsn.status_dosen && dsn.status_dosen.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (dsn.nuptk && dsn.nuptk.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (dsn.role && dsn.role.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredDosen = useMemo(() => {
+        const searchLower = debouncedSearchTerm.toLowerCase();
         
-        if (!searchMatch) return false;
+        return dosen.filter(dsn => {
+            const searchMatch = debouncedSearchTerm === '' ||
+                dsn.nama?.toLowerCase().includes(searchLower) ||
+                dsn.nip?.toLowerCase().includes(searchLower) ||
+                dsn.email?.toLowerCase().includes(searchLower) ||
+                dsn.prodi?.toLowerCase().includes(searchLower) ||
+                dsn.status_dosen?.toLowerCase().includes(searchLower) ||
+                dsn.nuptk?.toLowerCase().includes(searchLower) ||
+                dsn.role?.toLowerCase().includes(searchLower);
+            
+            if (!searchMatch) return false;
 
-        if (selectedRoleCategoryFilter === 'Dosen') {
-            if (dsn.role !== 'Dosen') return false;
-            if (selectedProdiFilter && dsn.prodi !== selectedProdiFilter) return false;
-        } else if (selectedRoleCategoryFilter === 'Tenaga Kependidikan') {
-            if (!dsn.role || !staffRolesList.includes(dsn.role)) return false;
-            if (selectedStaffRoleFilter && dsn.role !== selectedStaffRoleFilter) return false;
+            if (selectedRoleCategoryFilter === 'Dosen') {
+                if (dsn.role !== 'Dosen') return false;
+                if (selectedProdiFilter && dsn.prodi !== selectedProdiFilter) return false;
+            } else if (selectedRoleCategoryFilter === 'Tenaga Kependidikan') {
+                if (!dsn.role || !staffRolesList.includes(dsn.role)) return false;
+                if (selectedStaffRoleFilter && dsn.role !== selectedStaffRoleFilter) return false;
+            }
+            return true;
+        });
+    }, [dosen, debouncedSearchTerm, selectedRoleCategoryFilter, selectedProdiFilter, selectedStaffRoleFilter, staffRolesList]);
+
+    const totalPages = Math.ceil(filteredDosen.length / itemsPerPage);
+    const paginatedDosen = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredDosen.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredDosen, currentPage, itemsPerPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearchTerm, selectedRoleCategoryFilter, selectedProdiFilter, selectedStaffRoleFilter]);
+
+    const getPageNumbers = () => {
+        const pages: (number | string)[] = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            }
         }
-        return true;
-    });
-    console.log("Component Render: Filtered dosen count:", filteredDosen.length);
+        return pages;
+    };
 
     return (
         <div className="min-h-screen theme-admin">
             <SidebarAdmin />
             <main className="ml-72 px-2 py-4 md:px-4 md:py-6 bg-background w-[calc(100%-18rem)] min-h-screen overflow-y-auto">
                 <div className="w-full">
-                    {/* Judul hanya ditampilkan jika tidak dalam mode add atau edit */}
                     {!(addMode || editMode) && (
                         <h1 className="text-2xl font-bold mb-6 text-foreground flex items-center">
                             <Users2Icon className="mr-3 w-6 h-6 text-primary" />
@@ -338,14 +330,12 @@ function DosenManagementContent() { // Ubah nama komponen ini
                     )}
 
                     {alert.show && (
-                         // Alert is shown based on alert state, which is set by showAlert
                         <div className={`mb-4 p-3 rounded flex items-center ${alert.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-destructive/20 text-destructive'}`}>
                             <AlertCircle className="w-5 h-5 mr-2" />
                             {alert.message}
                         </div>
                     )}
 
-                    {/* Search, Filter, and Table (Visible only if not in addMode or editMode) */}
                     {!(addMode || editMode) && (
                         <>
                             <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -378,7 +368,7 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                         Filter Data Dosen/Tendik
                                     </h3>
                                 </div>
-                                <div className="px-5 py-4 space-y-5"> {/* Changed space-y-3 to space-y-5 for consistency */}
+                                <div className="px-5 py-4 space-y-5">
                                     <div>
                                         <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                                             Kategori
@@ -400,9 +390,8 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                             ))}
                                         </div>
                                     </div>
-                                    {/* Sub-filter for Dosen - Prodi */}
                                     {selectedRoleCategoryFilter === 'Dosen' && (
-                                        <div> {/* Removed pt-3 border-t border-border mt-3 wrapper */}
+                                        <div> 
                                             <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                                                 Program Studi
                                             </label>
@@ -435,9 +424,8 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                             </div>
                                         </div>
                                     )}
-                                    {/* Sub-filter for Tenaga Kependidikan - Staff Role */}
                                     {selectedRoleCategoryFilter === 'Tenaga Kependidikan' && (
-                                        <div> {/* Removed pt-3 border-t border-border mt-3 wrapper */}
+                                        <div> 
                                             <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                                                 Filter Tenaga Kependidikan
                                             </label>
@@ -447,7 +435,7 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                                     onClick={() => setSelectedStaffRoleFilter('')}
                                                     className={`px-3 py-1.5 text-sm font-medium rounded-md shadow-sm transition-colors duration-150 ease-in-out
                                                         ${selectedStaffRoleFilter === ''
-                                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' // Changed from bg-secondary
+                                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                                                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
                                                         }`}
                                                 >
@@ -460,7 +448,7 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                                         onClick={() => setSelectedStaffRoleFilter(role)}
                                                         className={`px-3 py-1.5 text-sm font-medium rounded-md shadow-sm transition-colors duration-150 ease-in-out
                                                             ${selectedStaffRoleFilter === role
-                                                                ? 'bg-primary text-primary-foreground hover:bg-primary/90' // Changed from bg-secondary
+                                                                ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                                                                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
                                                             }`}
                                                     >
@@ -478,8 +466,6 @@ function DosenManagementContent() { // Ubah nama komponen ini
                     {/* Add/Edit Form (Separate) */}
                     {(addMode || editMode) && (
                         <>
-                            {/* Form Title and Reload Button - Moved outside the card */}
-                            {/* Mengubah max-w-4xl mx-auto menjadi w-full atau class lain untuk menggeser ke kiri */}
                             <div className="mb-4"> 
                                 <div className="flex items-center">
                                     <button 
@@ -494,9 +480,7 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                     </h2>
                                 </div>
                             </div>
-                            {/* Card untuk Form */}
                             <div className="mb-6 bg-card p-4 rounded-lg shadow text-card-foreground">
-                                {/* Refresh button moved inside the card, top right */}
                                 <div className="flex justify-end mb-3">
                                     <button
                                         type="button"
@@ -516,7 +500,6 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                             <label className="block text-sm font-medium mb-1">Email</label>
                                             <input type="email" name="email" value={editData.email} onChange={handleInputChange} className="w-full border border-input rounded-md px-3 py-2 bg-background text-foreground" required />
                                         </div>
-                                        {/* Role: Not disabled, but value is fixed in edit mode */}
                                         <div>
                                             <label className="block text-sm font-medium mb-1">Role</label>
                                             <select 
@@ -560,7 +543,6 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                             <label className="block text-sm font-medium mb-1">Golongan/Pangkat</label>
                                             <input type="text" name="status_dosen" value={editData.status_dosen} onChange={handleInputChange} className="w-full border border-input rounded-md px-3 py-2 bg-background text-foreground" />
                                         </div>
-                                        {/* Prodi: Not disabled, but value is fixed in edit mode */}
                                         <div>
                                             <label className="block text-sm font-medium mb-1">Program Studi</label>
                                             <select 
@@ -615,8 +597,7 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                             </>
                                         )}
                                     </div>
-                                    <div className="flex justify-end pt-2"> {/* Mengubah mt-4 menjadi pt-2 atau hapus pt-2 jika ingin lebih dekat */}
-                                        {/* Tombol "Batal" di footer form dihilangkan. Pengguna dapat menggunakan tombol "Kembali ke daftar" di atas form. */}
+                                    <div className="flex justify-end pt-2"> 
                                         <button type="submit" className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90" disabled={isSubmitting}>
                                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : (addMode ? 'Tambah' : 'Simpan Perubahan')}
                                         </button>
@@ -640,54 +621,126 @@ function DosenManagementContent() { // Ubah nama komponen ini
                                     {searchTerm || selectedRoleCategoryFilter || selectedProdiFilter || selectedStaffRoleFilter ? 'Tidak ada dosen yang sesuai dengan filter yang dipilih.' : 'Belum ada data dosen'}
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full divide-y divide-border table-auto">
-                                        <thead className="bg-muted">
-                                            <tr>
-                                                <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[8%]">Foto</th>
-                                                <th className="px-1 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-[18%]">Nama</th>
-                                                <th className="px-1 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-[15%]">NIP</th>
-                                                <th className="px-1 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-[15%]">Prodi</th>
-                                                <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[12%]">Role</th>
-                                                {selectedRoleCategoryFilter !== 'Tenaga Kependidikan' && (
-                                                    <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[10%]">Status</th>
-                                                )}
-                                                <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[10%]">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-card divide-y divide-border text-sm">
-                                            {filteredDosen.map((dsn, index) => (
-                                                <tr key={dsn.id_dsn} className={index % 2 !== 0 ? 'bg-muted/40' : ''}>
-                                                    <td className="px-1 py-2 text-center">
-                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-muted mx-auto">
-                                                            {dsn.foto ? (<img src={dsn.foto} alt={dsn.nama} className="w-full h-full object-cover" />) 
-                                                                        : (<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Foto</div>)}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-1 py-2 whitespace-nowrap text-xs text-left truncate" title={dsn.nama}>{dsn.nama}</td>
-                                                    <td className="px-1 py-2 whitespace-nowrap text-xs text-left truncate text-muted-foreground" title={dsn.nip}>{dsn.nip}</td>
-                                                    <td className="px-1 py-2 whitespace-nowrap text-xs text-muted-foreground text-left truncate" title={dsn.prodi || undefined}>{dsn.prodi || '-'}</td>
-                                                    <td className="px-1 py-2 whitespace-nowrap text-xs text-muted-foreground text-center truncate" title={dsn.role || undefined}>{dsn.role || (selectedRoleCategoryFilter === 'Dosen' ? 'Dosen' : '-')}</td>
+                                <>
+                                    {/* Items per page selector and info */}
+                                    <div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-2 bg-muted/30">
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                            <span>Tampilkan</span>
+                                            <select
+                                                value={itemsPerPage}
+                                                onChange={(e) => {
+                                                    setItemsPerPage(Number(e.target.value));
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="border border-input rounded px-2 py-1 bg-background text-foreground text-sm"
+                                            >
+                                                {[5, 10, 20, 50, 100].map(num => (
+                                                    <option key={num} value={num}>{num}</option>
+                                                ))}
+                                            </select>
+                                            <span>data per halaman</span>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredDosen.length)} dari {filteredDosen.length} data
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full divide-y divide-border table-auto">
+                                            <thead className="bg-muted">
+                                                <tr>
+                                                    <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[8%]">Foto</th>
+                                                    <th className="px-1 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-[18%]">Nama</th>
+                                                    <th className="px-1 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-[15%]">NIP</th>
+                                                    <th className="px-1 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-[15%]">Prodi</th>
+                                                    <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[12%]">Role</th>
                                                     {selectedRoleCategoryFilter !== 'Tenaga Kependidikan' && (
-                                                        <td className="px-1 py-2 whitespace-nowrap text-xs text-center">
-                                                            <span className={`px-2 py-1 text-xs rounded-full ${dsn.status_dosen === 'ASN' ? 'bg-green-100 text-green-800' : dsn.status_dosen === 'P3K' ? 'bg-blue-100 text-blue-800' : 'bg-muted text-muted-foreground'}`}>
-                                                                {dsn.status_dosen || 'Tidak diketahui'}
-                                                            </span>
-                                                        </td>
+                                                        <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[10%]">Status</th>
                                                     )}
-                                                    <td className="px-1 py-2 whitespace-nowrap text-xs font-medium text-center">
-                                                        <button onClick={() => startEdit(dsn)} className="text-secondary hover:text-secondary/80 mr-3" disabled={showConfirmDelete || addMode || editMode}>
-                                                            <FileEdit className="h-4 w-4" />
-                                                        </button>
-                                                        <button onClick={() => confirmDelete(dsn)} className="text-destructive hover:text-destructive/80" disabled={showConfirmDelete || addMode || editMode}>
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </td>
+                                                    <th className="px-1 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-[10%]">Aksi</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            </thead>
+                                            <tbody className="bg-card divide-y divide-border text-sm">
+                                                {paginatedDosen.map((dsn, index) => (
+                                                    <tr key={dsn.id_dsn} className={index % 2 !== 0 ? 'bg-muted/40' : ''}>
+                                                        <td className="px-1 py-2 text-center">
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden bg-muted mx-auto">
+                                                                {dsn.foto ? (<img src={dsn.foto} alt={dsn.nama} className="w-full h-full object-cover" />) 
+                                                                            : (<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Foto</div>)}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-1 py-2 whitespace-nowrap text-xs text-left truncate" title={dsn.nama}>{dsn.nama}</td>
+                                                        <td className="px-1 py-2 whitespace-nowrap text-xs text-left truncate text-muted-foreground" title={dsn.nip}>{dsn.nip}</td>
+                                                        <td className="px-1 py-2 whitespace-nowrap text-xs text-muted-foreground text-left truncate" title={dsn.prodi || undefined}>{dsn.prodi || '-'}</td>
+                                                        <td className="px-1 py-2 whitespace-nowrap text-xs text-muted-foreground text-center truncate" title={dsn.role || undefined}>{dsn.role || (selectedRoleCategoryFilter === 'Dosen' ? 'Dosen' : '-')}</td>
+                                                        {selectedRoleCategoryFilter !== 'Tenaga Kependidikan' && (
+                                                            <td className="px-1 py-2 whitespace-nowrap text-xs text-center">
+                                                                <span className={`px-2 py-1 text-xs rounded-full ${dsn.status_dosen === 'ASN' ? 'bg-green-100 text-green-800' : dsn.status_dosen === 'P3K' ? 'bg-blue-100 text-blue-800' : 'bg-muted text-muted-foreground'}`}>
+                                                                    {dsn.status_dosen || 'Tidak diketahui'}
+                                                                </span>
+                                                            </td>
+                                                        )}
+                                                        <td className="px-1 py-2 whitespace-nowrap text-xs font-medium text-center">
+                                                            <button onClick={() => startEdit(dsn)} className="text-secondary hover:text-secondary/80 mr-3" disabled={showConfirmDelete || addMode || editMode}>
+                                                                <FileEdit className="h-4 w-4" />
+                                                            </button>
+                                                            <button onClick={() => confirmDelete(dsn)} className="text-destructive hover:text-destructive/80" disabled={showConfirmDelete || addMode || editMode}>
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="px-4 py-3 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-3 bg-muted/30">
+                                            <div className="text-sm text-muted-foreground">
+                                                Halaman {currentPage} dari {totalPages}
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                {/* Previous Button */}
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={currentPage === 1}
+                                                    className="px-3 py-1.5 text-sm rounded-md border border-input bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    ←
+                                                </button>
+                                                
+                                                {/* Page Numbers */}
+                                                {getPageNumbers().map((page, index) => (
+                                                    page === '...' ? (
+                                                        <span key={`ellipsis-${index}`} className="px-2 py-1.5 text-sm text-muted-foreground">...</span>
+                                                    ) : (
+                                                        <button
+                                                            key={page}
+                                                            onClick={() => setCurrentPage(page as number)}
+                                                            className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                                                                currentPage === page
+                                                                    ? 'bg-primary text-primary-foreground border-primary'
+                                                                    : 'border-input bg-background hover:bg-muted'
+                                                            }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    )
+                                                ))}
+                                                
+                                                {/* Next Button */}
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                    disabled={currentPage === totalPages}
+                                                    className="px-3 py-1.5 text-sm rounded-md border border-input bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    →
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}
@@ -715,11 +768,8 @@ function DosenManagementContent() { // Ubah nama komponen ini
     );
 }
 
-// Komponen Halaman Utama yang akan diekspor
 export default function DosenManagementPage() {
     return (
-        // Bungkus komponen yang menggunakan useSearchParams dengan Suspense
-        // Pastikan fallback UI cukup informatif dan ringan
         <Suspense fallback={<div className="flex justify-center items-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-primary" /> <span className="ml-2">Memuat data dosen...</span></div>}>
             <DosenManagementContent />
         </Suspense>

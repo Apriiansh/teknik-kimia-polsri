@@ -1,104 +1,334 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+<p align="center">
+  <img src="/public/Logo Tekkim.png" alt="Logo Jurusan Teknik Kimia" width="120" />
+</p>
+
+<h1 align="center">Website Jurusan Teknik Kimia</h1>
+<h3 align="center">Politeknik Negeri Sriwijaya</h3>
 
 <p align="center">
- The fastest way to build apps with Next.js and Supabase
+  Sistem Informasi Akademik dan Profil Jurusan Teknik Kimia Politeknik Negeri Sriwijaya
 </p>
 
 <p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
+  <a href="#fitur"><strong>Fitur</strong></a> ·
+  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+  <a href="#rendering-strategy"><strong>Rendering Strategy</strong></a> ·
+  <a href="#struktur-project"><strong>Struktur Project</strong></a> ·
+  <a href="#instalasi"><strong>Instalasi</strong></a>
 </p>
-<br/>
 
-## Features
+---
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+## 📋 Tentang Project
 
-## Demo
+Website resmi Jurusan Teknik Kimia Politeknik Negeri Sriwijaya yang berfungsi sebagai:
+- Portal informasi publik (berita, kegiatan, kalender akademik, beasiswa)
+- Profil jurusan (sejarah, visi misi, struktur organisasi, dosen & staff)
+- Informasi program studi (D3 Teknik Kimia, D3 PSDKU SIAK, D4 Teknik Energi, D4 Teknologi Kimia Industri, S2 Energi Terbarukan)
+- Informasi laboratorium (Lab Analisis, Lab Rekayasa, Lab Energi, Lab Mini Plant)
+- Dashboard untuk berbagai role user (Admin, Dosen, Mahasiswa, Alumni, HMJ)
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+---
 
-## Deploy to Vercel
+## ✨ Fitur
 
-Vercel deployment will guide you through creating a Supabase account and project.
+### 🌐 Halaman Publik
+- **Beranda** - Hero carousel, statistik jurusan, berita terbaru, kegiatan, testimoni alumni
+- **Profil Jurusan** - Sejarah, visi & misi, struktur organisasi, dosen & staff
+- **Program Studi** - Informasi 5 program studi dengan kurikulum dan daftar dosen
+- **Laboratorium** - Informasi 4 laboratorium dengan galeri dan daftar peralatan
+- **Info & Berita** - Berita, pengumuman, kalender akademik, beasiswa, kegiatan
+- **Direktori E-Book** - Koleksi buku elektronik
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+### 👨‍💼 Dashboard Admin
+- **Data Management** - CRUD data dosen, mahasiswa, alumni
+- **CMS (Content Management System)**
+  - Manajemen berita & pengumuman
+  - Manajemen kegiatan jurusan
+  - Manajemen kalender akademik
+  - Manajemen beasiswa
+  - Manajemen konten profil (sejarah, visi misi, struktur organisasi)
+  - Manajemen konten laboratorium
+  - Manajemen konten program studi
+  - Statistik mahasiswa per prodi
+- **Kuesioner** - Pembuatan dan manajemen kuesioner
+- **Pengaduan & Aspirasi** - Pengelolaan layanan mahasiswa
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+### 👨‍🏫 Dashboard Dosen
+- Profil dosen dengan edit foto
+- Manajemen penelitian & pengabdian
+- Evaluasi hasil pembelajaran
+- Pengaturan akun
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+### 👨‍🎓 Dashboard Mahasiswa
+- Profil mahasiswa
+- Pengisian kuesioner
+- Pengaduan & aspirasi
+- Pengaturan akun
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+### 🎓 Dashboard Alumni
+- Profil alumni
+- Testimoni alumni
+- Riwayat pekerjaan
 
-## Clone and run locally
+### 🏛️ Dashboard HMJ (Himpunan Mahasiswa Jurusan)
+- Manajemen kegiatan HMJ
+- Manajemen berita HMJ
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+---
 
-2. Create a Next.js app using the Supabase Starter template npx command
+## 🛠️ Tech Stack
 
+### Framework & Runtime
+| Teknologi | Versi | Keterangan |
+|-----------|-------|------------|
+| **Next.js** | 16.1.1 | React framework dengan App Router |
+| **React** | 18.3.1 | UI library |
+| **TypeScript** | 5.7.2 | Type safety |
+
+### Backend & Database
+| Teknologi | Keterangan |
+|-----------|------------|
+| **Supabase** | Backend-as-a-Service (PostgreSQL, Auth, Storage) |
+| **@supabase/ssr** | Server-side rendering support untuk Supabase Auth |
+
+### Styling & UI Components
+| Teknologi | Keterangan |
+|-----------|------------|
+| **Tailwind CSS** | 3.4.17 - Utility-first CSS framework |
+| **shadcn/ui** | Komponen UI berbasis Radix UI |
+| **Radix UI** | Headless UI primitives (Dialog, Select, Tabs, dll) |
+| **Lucide React** | Icon library |
+| **Heroicons** | Icon library tambahan |
+| **Framer Motion** | Animation library |
+
+### Libraries Tambahan
+| Teknologi | Keterangan |
+|-----------|------------|
+| **Swiper** | Carousel/slider component |
+| **Recharts** | Chart library untuk visualisasi data |
+| **React Hook Form** | Form handling |
+| **date-fns** | Date utility |
+| **React Day Picker** | Date picker component |
+| **next-themes** | Dark/light mode theming |
+| **Sonner** | Toast notifications |
+| **pdfmake** | PDF generation |
+| **Puppeteer** | Headless browser (PDF/screenshot) |
+
+---
+
+## 🔄 Rendering Strategy
+
+Website ini menggunakan kombinasi berbagai strategi rendering Next.js untuk optimasi performa:
+
+### SSG (Static Site Generation) dengan ISR
+Halaman yang di-generate saat build time dengan Incremental Static Regeneration (revalidate setiap 1 jam):
+
+| Halaman | Path | Keterangan |
+|---------|------|------------|
+| Program Studi | `/prodi/*` | D3 Teknik Kimia, D3 PSDKU, D4 Teknik Energi, D4 TKI, S2 Energi Terbarukan |
+| Profil Dosen & Staff | `/profil/dosen_staff` | Server Component dengan data fetching |
+| Profil Sejarah | `/profil/sejarah` | Konten statis |
+| Visi & Misi | `/profil/visi_misi` | Konten statis |
+| Struktur Organisasi | `/profil/struktur_organisasi` | Konten statis |
+
+```typescript
+// Contoh SSG dengan revalidate
+export const revalidate = 3600; // Revalidate setiap 1 jam
+
+export default async function D3TeknikKimiaPage() {
+    const { prodiDetails, dosenList } = await getProdiData(...);
+    return <ProdiClientContent ... />;
+}
+```
+
+### SSR (Server-Side Rendering)
+Halaman yang di-render di server pada setiap request:
+
+| Halaman | Path | Keterangan |
+|---------|------|------------|
+| Detail Berita | `/info/berita/[slug]` | Dynamic route dengan data spesifik |
+| Auth Callback | `/auth/callback` | OAuth handling |
+| Protected Routes | `/protected/*` | Halaman terproteksi auth |
+| Sign In/Up | `/sign-in`, `/sign-up` | Authentication pages |
+
+### CSR (Client-Side Rendering)
+Halaman dengan `'use client'` directive yang di-render di browser:
+
+| Halaman | Path | Keterangan |
+|---------|------|------------|
+| **Beranda** | `/` | Hero carousel, animasi counter, data dinamis |
+| **Dashboard Admin** | `/pages-admin/*` | CRUD operations, real-time data |
+| **Dashboard Dosen** | `/pages-dosen/*` | Profil editing, form handling |
+| **Dashboard Mahasiswa** | `/pages-mahasiswa/*` | Pengisian kuesioner, pengaduan |
+| **Dashboard Alumni** | `/pages-alumni/*` | Profil & testimoni |
+| **Dashboard HMJ** | `/pages-hmj/*` | Manajemen konten HMJ |
+| **CMS Pages** | `/pages-admin/cms/*` | Content management dengan form |
+| **Info Berita** | `/info/berita` | Search, filter, pagination client-side |
+| **Info Kegiatan** | `/info/kegiatan` | Gallery dengan animasi |
+| **Info Beasiswa** | `/info/beasiswa` | Filter dan search |
+| **Laboratorium** | `/laboratorium/*` | Swiper carousel, interactive UI |
+
+```typescript
+// Contoh CSR
+'use client';
+
+import { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
+
+export default function DashboardAdmin() {
+    const [data, setData] = useState([]);
+    // Client-side data fetching
+}
+```
+
+### Hybrid Approach
+Beberapa halaman menggunakan pendekatan hybrid:
+- **Server Component** untuk data fetching awal
+- **Client Component** untuk interaktivitas (search, filter, carousel)
+
+```typescript
+// Server Component (page.tsx)
+export default async function DosenStaffPage() {
+    const data = await getDosenData(); // Server-side fetch
+    return <DosenStaffContent data={data} />; // Client component untuk interaktivitas
+}
+```
+
+---
+
+## 📁 Struktur Project
+
+```
+teknikkimia.polsri.ac.id/
+├── app/
+│   ├── (auth-pages)/          # Auth layouts (sign-in, sign-up, forgot-password)
+│   ├── auth/                  # Auth callback
+│   ├── direktori/             # E-book directory
+│   ├── form/                  # Form components
+│   ├── info/                  # Public info pages
+│   │   ├── beasiswa/          # Scholarship info
+│   │   ├── berita/            # News & announcements
+│   │   ├── kalender/          # Academic calendar
+│   │   └── kegiatan/          # Activities
+│   ├── laboratorium/          # Lab pages (4 labs)
+│   ├── pages-admin/           # Admin dashboard
+│   │   ├── cms/               # Content Management System
+│   │   ├── data-management/   # CRUD dosen, mahasiswa, alumni
+│   │   ├── kuesioner/         # Questionnaire management
+│   │   └── pengaduan_aspirasi/# Complaint handling
+│   ├── pages-alumni/          # Alumni dashboard
+│   ├── pages-dosen/           # Lecturer dashboard
+│   ├── pages-hmj/             # Student organization dashboard
+│   ├── pages-mahasiswa/       # Student dashboard
+│   ├── prodi/                 # Study programs (5 programs)
+│   ├── profil/                # Department profile
+│   │   ├── dosen_staff/       # Lecturers & staff
+│   │   ├── sejarah/           # History
+│   │   ├── struktur_organisasi/
+│   │   └── visi_misi/
+│   ├── protected/             # Protected routes
+│   ├── actions.ts             # Server actions
+│   ├── alumni_actions.ts      # Alumni server actions
+│   ├── dosen_actions.ts       # Lecturer server actions
+│   ├── layout.tsx             # Root layout
+│   └── page.tsx               # Homepage
+├── components/
+│   ├── ui/                    # shadcn/ui components
+│   ├── Navbar.tsx             # Navigation bar
+│   ├── Footer.tsx             # Footer
+│   ├── SidebarAdmin.tsx       # Admin sidebar
+│   ├── SidebarDosen.tsx       # Lecturer sidebar
+│   ├── SidebarMahasiswa.tsx   # Student sidebar
+│   ├── SidebarAlumni.tsx      # Alumni sidebar
+│   └── SidebarHMJ.tsx         # HMJ sidebar
+├── lib/
+│   ├── data.ts                # Static data
+│   └── utils.ts               # Utility functions
+├── utils/
+│   └── supabase/              # Supabase client configuration
+│       ├── client.ts          # Browser client
+│       ├── server.ts          # Server client
+│       └── admin-client.ts    # Admin client
+├── public/                    # Static assets
+├── tailwind.config.ts         # Tailwind configuration
+├── next.config.ts             # Next.js configuration
+└── package.json
+```
+
+---
+
+## 🚀 Instalasi
+
+### Prerequisites
+- Node.js 18+
+- npm/yarn/pnpm
+- Akun Supabase
+
+### Langkah Instalasi
+
+1. **Clone repository**
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   git clone https://github.com/your-username/teknikkimia.polsri.ac.id.git
+   cd teknikkimia.polsri.ac.id
    ```
 
+2. **Install dependencies**
    ```bash
-   yarn create next-app --example with-supabase with-supabase-app
+   npm install
    ```
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
+3. **Setup environment variables**
+   
+   Buat file `.env.local` dan isi dengan:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-3. Use `cd` to change into the app's directory
-
-   ```bash
-   cd with-supabase-app
-   ```
-
-4. Rename `.env.example` to `.env.local` and update the following:
-
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
-
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
-
-5. You can now run the Next.js local development server:
-
+4. **Jalankan development server**
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+5. **Buka browser**
+   
+   Akses [http://localhost:3000](http://localhost:3000)
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+### Build Production
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+```bash
+npm run build
+npm run start
+```
 
-## Feedback and issues
+---
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+## 📄 Database Schema
 
-## More Supabase examples
+Project ini menggunakan Supabase (PostgreSQL) dengan tabel-tabel utama:
+- `dosen` - Data dosen
+- `mahasiswa` - Data mahasiswa
+- `alumni` - Data alumni
+- `berita` - Berita & pengumuman
+- `categories` - Kategori berita
+- `kegiatan` - Kegiatan jurusan
+- `kalender_akademik` - Kalender akademik
+- `cms_beasiswa` - Data beasiswa
+- `laboratorium` - Data laboratorium
+- `jurusan_stats` - Statistik jurusan
+- `kuesioner` - Kuesioner
+- `pengaduan_aspirasi` - Layanan pengaduan
+- `jabatan_struktural` - Jabatan struktural dosen
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+---
+
+## 👥 Tim Pengembang
+
+Jurusan Teknik Kimia - Politeknik Negeri Sriwijaya
+
+---
+
+## 📝 Lisensi
+
+© 2024-2026 Jurusan Teknik Kimia Politeknik Negeri Sriwijaya. All Rights Reserved.

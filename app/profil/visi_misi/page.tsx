@@ -10,11 +10,11 @@ interface VisiMisiKonten {
   judul_visi: string | null;
   isi_visi: string | null;
   judul_misi: string | null;
-  poin_misi: string[]; // Array of strings
+  poin_misi: string[]; 
   updated_at?: string;
 }
 
-const KONTEN_ID = 'konten_utama'; // Harus sama dengan di CMS
+const KONTEN_ID = 'konten_utama'; 
 
 const VisiMisi: FC = () => {
     const [konten, setKonten] = useState<VisiMisiKonten | null>(null);
@@ -60,7 +60,7 @@ const VisiMisi: FC = () => {
         return <div className="container mx-auto p-4 text-center text-red-500">{error}</div>;
     }
 
-    const defaultKonten: VisiMisiKonten = { // Fallback jika konten null
+    const defaultKonten: VisiMisiKonten = {
         id: KONTEN_ID,
         judul_utama: "Visi dan Misi Jurusan Teknik Kimia",
         paragraf_pengantar: "Menjadi institusi pendidikan unggulan di bidang industri proses yang siap bersaing secara global, berkarakter, dan berwawasan lingkungan.",
@@ -88,7 +88,6 @@ const VisiMisi: FC = () => {
                     </p>
                 </header>
 
-                {/* Visi */}
                 <section className="bg-white shadow-md rounded-xl p-6 border border-gray-200">
                     <h2 className="text-2xl font-bold text-maroon-700 mb-3">{displayKonten.judul_visi}</h2>
                     <p className="text-lg text-gray-700 text-justify">
@@ -96,7 +95,6 @@ const VisiMisi: FC = () => {
                     </p>
                 </section>
 
-                {/* Misi */}
                 <section className="bg-white shadow-md rounded-xl p-6 border border-gray-200 space-y-4">
                     <h2 className="text-2xl font-bold text-maroon-700">{displayKonten.judul_misi}</h2>
                     <ul className="list-disc list-inside space-y-4 text-gray-700 text-lg">

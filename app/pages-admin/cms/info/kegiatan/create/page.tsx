@@ -1,40 +1,37 @@
-// app/pages-admin/cms/kegiatan/[action]/page.tsx
 'use client';
 
-import { useState, useEffect, ChangeEvent, FormEvent, useRef } from 'react';
-import { createClient } from '@/utils/supabase/client'; // prettier-ignore
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { createClient } from '@/utils/supabase/client'; 
 import { Save, ArrowLeft, Image as ImageIcon, Clock, AlertTriangle, CheckCircle, XCircle, Pencil, FilePlus2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
-import NextImage from 'next/image'; // Untuk preview
+import SidebarAdmin from '@/components/SidebarAdmin'; 
+import NextImage from 'next/image'; 
 
-interface KegiatanItem { // Renamed from KegiatanData for clarity
+interface KegiatanItem { 
     id?: string;
     description: string;
-    image_urls: string[]; // Changed to array of strings
+    image_urls: string[];
     created_at?: string;
     updated_at?: string;
 }
 
 interface PreviewItem {
-    id: string; // Unique ID for React key, can be temp
-    url: string; // Blob URL for new files, or existing Supabase URL
-    file?: File; // The actual file object for new uploads
-    isNew: boolean; // True if this is a newly selected file
-    originalDbUrl?: string; // Not used in create, but good for consistency with edit
+    id: string; 
+    url: string;
+    file?: File;
+    isNew: boolean;
+    originalDbUrl?: string;
 }
 
-const BUCKET_NAME = 'kegiatan-images'; // Sesuaikan dengan nama bucket Anda
+const BUCKET_NAME = 'kegiatan-images';
 
 export default function KegiatanFormPage() {
     const params = useParams();
     const router = useRouter();
-
-    // `action` bisa 'create' atau 'edit'.
-    // `id` akan ada jika action adalah 'edit'.
-    const pageAction = params.action as string; // 'create' atau 'edit'
-    const kegiatanId = params.id as string | undefined; // ID kegiatan jika edit
+   
+    const pageAction = params.action as string; 
+    const kegiatanId = params.id as string | undefined; 
 
     const isEditing = pageAction === 'edit';
 
