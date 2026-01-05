@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/public/Logo Tekkim.png" alt="Logo Jurusan Teknik Kimia" width="120" />
+  <img src="/public/logo-polsri.jpg" alt="Logo Teknik Kimia (masih logo poltek sih)" width="120" />
 </p>
 
 <h1 align="center">Website Jurusan Teknik Kimia</h1>
