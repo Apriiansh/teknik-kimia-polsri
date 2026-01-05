@@ -434,5 +434,5 @@ export async function changePasswordAction(prevState: any, formData: FormData) {
 export const signOutAction = async () => {
     const supabase = await createClient();
     await supabase.auth.signOut();
-    return redirect("/sign-in");
+    return redirect("/");
 };

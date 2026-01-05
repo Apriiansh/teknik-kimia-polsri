@@ -95,7 +95,7 @@ export default function SidebarDosen() {
 
     async function handleLogout() {
         await signOutAction();
-        router.push("/auth/login");
+        router.push("/");
     }
 
     const closeAllMenusAndNavigate = (path: string) => {

@@ -193,7 +193,7 @@ export default function Navbar() {
         {/* Profile Button */}
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Link
-            href="https://teknikkimia-polsri-ac-id.vercel.app/sign-in"
+            href="https://teknik-kimia-polsri.vercel.app/sign-in"
             className="text-white text-2xl focus:outline-none hover:text-yellow-300 transition-colors duration-300"
           >
             <FaUserCircle />
