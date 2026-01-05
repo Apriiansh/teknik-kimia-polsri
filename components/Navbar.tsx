@@ -350,11 +350,18 @@ export default function Navbar() {
                     {dropdownOpen.lab && (
                       <div className="pl-4 mt-2 space-y-2">
                         <Link
-                          href="/laboratorium/lab-analisis"
+                          href="/laboratorium/lab-analisa"
                           onClick={() => setMobileMenuOpen(false)}
                           className="block text-gray-300 hover:text-yellow-300"
                         >
-                          Laboratorium Analisis
+                          Laboratorium Analisa
+                        </Link>
+                        <Link
+                          href="/laboratorium/lab-kimia-dasar"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block text-gray-300 hover:text-yellow-300"
+                        >
+                          Laboratorium Kimia Dasar
                         </Link>
                         <Link
                           href="/laboratorium/lab-rekayasa"
@@ -640,10 +647,16 @@ export default function Navbar() {
                     className="absolute left-0 mt-2 w-64 bg-white text-gray-800 shadow-lg rounded-lg overflow-hidden z-20"
                   >
                     <Link
-                      href="/laboratorium/lab-analisis"
+                      href="/laboratorium/lab-analisa"
                       className="block px-4 py-2 hover:bg-gray-100 hover:text-maroon-700 transition-colors duration-200"
                     >
-                      Laboratorium Analisis
+                      Laboratorium Analisa
+                    </Link>
+                    <Link
+                      href="/laboratorium/lab-kimia-dasar"
+                      className="block px-4 py-2 hover:bg-gray-100 hover:text-maroon-700 transition-colors duration-200"
+                    >
+                      Laboratorium Kimia Dasar
                     </Link>
                     <Link
                       href="/laboratorium/lab-rekayasa"

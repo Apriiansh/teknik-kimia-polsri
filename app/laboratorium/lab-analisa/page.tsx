@@ -5,23 +5,21 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import * as LucideIcons from 'lucide-react'; // Import all icons
-import { createClient } from '@/utils/supabase/client'; // Supabase client
+import * as LucideIcons from 'lucide-react'; 
+import { createClient } from '@/utils/supabase/client'; 
 
-// --- Interfaces for fetched data (mirroring SupabaseLabData from CMS) ---
 interface LabMainImage {
   url: string;
   alt: string;
-  storagePath: string; // Keep for potential future use, not directly rendered
+  storagePath: string; 
 }
 
-// Interface for equipment data as stored/fetched, iconName is string initially
 interface RawLabEquipment {
   name: string;
   description: string;
-  category: string; // Category as fetched from DB
+  category: string; 
   imageUrl: string;
-  iconName: string; // Icon name as string from DB
+  iconName: string; 
   storagePath: string;
 }
 
@@ -29,8 +27,8 @@ interface LabEquipment {
   name: string;
   description: string;
   imageUrl: string;
-  iconName: keyof typeof LucideIcons; // Ensure iconName is a valid Lucide icon key
-  storagePath: string; // Keep for potential future use
+  iconName: keyof typeof LucideIcons; 
+  storagePath: string; 
 }
 
 interface LaboratoriumPageData {
@@ -42,10 +40,10 @@ interface LaboratoriumPageData {
 
 interface LabEquipmentCategory {
   categoryName: string;
-  equipment: LabEquipment[]; // Uses the LabEquipment with typed iconName
+  equipment: LabEquipment[]; 
 }
 
-const LAB_ID = "lab-analisis"; // The ID for this specific lab page
+const LAB_ID = "lab-analisa"; 
 
 export default function LaboratoriumAnalisis() {
   const supabase = createClient();
@@ -60,27 +58,26 @@ export default function LaboratoriumAnalisis() {
       try {
         const { data, error: fetchError } = await supabase
           .from('cms_laboratorium')
-          .select('title, deskripsi, main_images, equipments') // Select new columns
-          .eq('id_lab', LAB_ID) // Use id_lab for matching
+          .select('title, deskripsi, main_images, equipments') 
+          .eq('id_lab', LAB_ID) 
           .single();
 
         if (fetchError) {
-          if (fetchError.code === 'PGRST116') { // PGRST116: "Query returns no rows"
+          if (fetchError.code === 'PGRST116') {
             setError('Data laboratorium tidak ditemukan.');
           } else {
             console.error("Error fetching lab data:", fetchError);
             setError(fetchError.message || 'Gagal memuat data laboratorium.');
           }
-          return; // Exit if error
+          return; 
         }
 
         if (data) {
           const rawEquipments: RawLabEquipment[] = data.equipments || [];
           
-          // Group equipments by category
           const groupedByCategory: Record<string, LabEquipment[]> = {};
           rawEquipments.forEach(rawEq => {
-            const category = rawEq.category || 'Lain-lain'; // Default category if empty
+            const category = rawEq.category || 'Lain-lain'; 
             if (!groupedByCategory[category]) {
               groupedByCategory[category] = [];
             }
@@ -88,7 +85,7 @@ export default function LaboratoriumAnalisis() {
               name: rawEq.name,
               description: rawEq.description,
               imageUrl: rawEq.imageUrl,
-              iconName: rawEq.iconName as keyof typeof LucideIcons, // Cast string to keyof, renderIcon handles fallback
+              iconName: rawEq.iconName as keyof typeof LucideIcons, 
               storagePath: rawEq.storagePath,
             });
           });
@@ -100,8 +97,8 @@ export default function LaboratoriumAnalisis() {
             }));
 
           setLabData({
-            displayName: data.title || 'Laboratorium Analisis', // Use new 'title' field
-            description: data.deskripsi || '', // Use new 'deskripsi' field
+            displayName: data.title || 'Laboratorium Analisis', 
+            description: data.deskripsi || '', 
             mainImages: (data.main_images as LabMainImage[]) || [], // 'main_images' directly maps
             equipmentCategories: equipmentCategoriesResult,
           });

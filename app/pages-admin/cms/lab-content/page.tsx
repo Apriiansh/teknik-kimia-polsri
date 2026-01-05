@@ -5,8 +5,6 @@ import { createClient } from '@/utils/supabase/client';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -27,33 +25,32 @@ import SidebarAdmin from '@/components/SidebarAdmin';
 
 // --- Interfaces ---
 interface LabMainImage {
-  id: string; // Unique ID for React keys and internal tracking
-  file?: File; // For storing the new file selected (optional)
+  id: string; 
+  file?: File; 
   alt: string;
   imageUrl: string | null;
-  storagePath?: string | null; // For storing the path in Supabase Storage (optional)
+  storagePath?: string | null; 
 }
 
 interface LabEquipment {
-  id: string; // Unique ID for React keys and internal tracking
-  imageFile?: File; // For storing the equipment image file (optional)
+  id: string; 
+  imageFile?: File; 
   name: string;
   description: string;
-  category: string; // Category is now a string
+  category: string; 
   iconName: string;
   imageUrl: string | null;
-  storagePath?: string | null; // For storing the equipment image path (optional)
+  storagePath?: string | null;
 }
 
 interface LaboratoriumDataState {
   title: string;
   deskripsi: string;
-  mainImages: LabMainImage[]; // Array of main images
-  equipments: LabEquipment[]; // Array of equipment items
-  userDefinedCategories: string[]; // New: User-defined categories for this lab
+  mainImages: LabMainImage[]; 
+  equipments: LabEquipment[]; 
+  userDefinedCategories: string[]; 
 }
 
-// For Supabase storage (JSONB columns structure)
 interface StoredLabMainImage {
   url: string;
   alt: string;
@@ -71,7 +68,9 @@ interface StoredLabEquipment {
 
 // --- Static Data ---
 const LAB_OPTIONS = [
-  { id_lab: "lab-analisis", name: "Lab Analisis" },
+  // { id_lab: "lab-analisis", name: "Lab Analisis" },
+  { id_lab: "lab-analisa", name: "Lab Analisa" },
+  { id_lab: "lab-kimia-dasar", name: "Lab Kimia Dasar" },
   { id_lab: "lab-rekayasa", name: "Lab Rekayasa" },
   { id_lab: "lab-energi", name: "Lab Energi" },
   { id_lab: "lab-miniplant", name: "Lab Mini Plant" },
@@ -86,7 +85,7 @@ const LUCIDE_ICON_OPTIONS = [
 
 // Predefined categories based on lab type
 const PREDEFINED_EQUIPMENT_CATEGORIES: Record<string, string[]> = {
-  "lab-analisis": [
+  "lab-analisa": [
     "Alat Lab Kimia Analitik Instrumen",
   ],
   "lab-rekayasa": [
