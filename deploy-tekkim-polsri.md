@@ -47,8 +47,6 @@ cp -r public .next/standalone/
 # Copy folder static ke standalone/.next/
 cp -r .next/static .next/standalone/.next/
 
-# Copy file .env.production
-cp .env.production .next/standalone/.env
 ```
 
 ### 3. Compress untuk Upload
