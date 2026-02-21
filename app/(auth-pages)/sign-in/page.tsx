@@ -18,7 +18,7 @@ export default async function SignIn(props: {
     <div
       className="min-h-screen flex items-center justify-center w-full"
       style={{
-        backgroundImage: "url('/slide1.jpg')", // PASTIKAN PATH INI BENAR & FOTO ADA DI FOLDER PUBLIC
+        backgroundImage: "url('/slide1.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -29,7 +29,7 @@ export default async function SignIn(props: {
       <div className="w-full max-w-xs bg-white bg-opacity-95 rounded-lg shadow-xl px-8 py-3 mx-4">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="w-full">
-            <div className="mb-2 text-center"> {/* Jarak bawah grup judul ke form */}
+            <div className="mb-2 text-center"> 
               <h1 
                 className="inline-block text-2xl font-semibold text-primary relative pb-1.5 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full after:bg-primary after:rounded-full"
               >
@@ -38,7 +38,7 @@ export default async function SignIn(props: {
             </div>
             
             <SigninForm searchParams={searchParams} />
-            <p className="text-xs text-muted-foreground mt-1 text-center"> {/* Mengubah ukuran font menjadi text-xs */}
+            <p className="text-xs text-muted-foreground mt-1 text-center"> 
               Don't have an account?{" "}
               <Link className="text-primary font-medium hover:underline transition-all" href="/sign-up">
                 Sign Up

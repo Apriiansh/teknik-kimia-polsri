@@ -169,7 +169,7 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
+    return encodedRedirect("error", "/sign-in", "Email atau password yang Anda masukkan salah");
   }
 
   const userId = data.user.id;

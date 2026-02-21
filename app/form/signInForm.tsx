@@ -61,17 +61,7 @@ export function SigninForm({ searchParams }: { searchParams: Message }) {
             </div>
             
             {/* Display FormMessage here, before the submit button, if it's an error */}
-            {searchParams && "error" in searchParams && (
-                <div className="pt-2 text-center"> {/* Added padding top for spacing and text-center */}
-                    {/* Check for specific error code for invalid credentials */}
-                    {searchParams.error === 'CredentialsSignin' ? (
-                        <p className="text-sm text-red-600">email atau password yang Anda masukkan salah</p>
-                    ) : (
-                        // Fallback to the generic FormMessage component for other errors
-                        <FormMessage message={searchParams} />
-                    )}
-                </div>
-            )}
+            <FormMessage message={searchParams} />
             
             <div className="pt-2"> {/* Adjusted margin-top to pt-2 for consistency */}
                 <SubmitButton
