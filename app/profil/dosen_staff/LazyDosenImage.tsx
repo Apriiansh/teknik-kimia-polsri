@@ -24,7 +24,7 @@ export default function LazyDosenImage({ dosenId, nama }: LazyDosenImageProps) {
                 });
             },
             {
-                rootMargin: '100px', // Start loading 100px before visible
+                rootMargin: '100px',
                 threshold: 0.1
             }
         );

@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Trash2, Edit3, UserPlus } from 'lucide-react'; // Import ikon UserPlus
+import { Trash2, Edit3, UserPlus, Image as ImageIcon, Save, Loader2 } from 'lucide-react'; // Import ikon UserPlus
 import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
 
 // Updated types to match database schema with UUID
@@ -25,6 +25,12 @@ interface JabatanStruktural {
     order: number;
 }
 
+interface StrukturContent {
+    id: string;
+    narasi: string;
+    gambar: string | null;
+}
+
 export default function StrukturOrganisasiAdmin() {
     const supabase = createClient();
     const router = useRouter();
@@ -33,6 +39,12 @@ export default function StrukturOrganisasiAdmin() {
     const [loading, setLoading] = useState<boolean>(true);
     const [isEditing, setIsEditing] = useState<string | null>(null);
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // State for struktur organisasi content
+    const [content, setContent] = useState<StrukturContent | null>(null);
+    const [editingContent, setEditingContent] = useState<StrukturContent | null>(null);
+    const [savingContent, setSavingContent] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     // Predefined jabatan if none exist in database
     const defaultJabatan = [
@@ -65,6 +77,35 @@ export default function StrukturOrganisasiAdmin() {
                 } else {
                     setDosen(dosenData || []);
                 }
+
+                // Fetch struktur organisasi content from MySQL API
+                try {
+                    const response = await fetch('/api/struktur-organisasi');
+                    const data = await response.json();
+                    
+                    if (data.data) {
+                        setContent(data.data);
+                        setEditingContent({ ...data.data });
+                    } else {
+                        // Initialize empty content
+                        const emptyContent: StrukturContent = {
+                            id: '',
+                            narasi: '',
+                            gambar: null
+                        };
+                        setEditingContent(emptyContent);
+                    }
+                } catch (contentError) {
+                    console.error('Error fetching content:', contentError);
+                    // Initialize empty content
+                    const emptyContent: StrukturContent = {
+                        id: '',
+                        narasi: '',
+                        gambar: null
+                    };
+                    setEditingContent(emptyContent);
+                }
+               
 
                 // Fetch existing jabatan
                 const { data: jabatanData, error: jabatanError } = await supabase
@@ -106,6 +147,117 @@ export default function StrukturOrganisasiAdmin() {
 
         fetchData();
     }, []);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setMessage({ text: 'File harus berupa gambar', type: 'error' });
+            return;
+        }
+
+        // Validate file size (max 2MB for base64)
+        if (file.size > 2 * 1024 * 1024) {
+            setMessage({ text: 'Ukuran file terlalu besar (max 2MB untuk base64)', type: 'error' });
+            return;
+        }
+
+        setUploadingImage(true);
+        try {
+            // Convert to base64
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+
+            if (editingContent) {
+                setEditingContent({
+                    ...editingContent,
+                    gambar: base64
+                });
+                setMessage({ text: 'Gambar berhasil diproses', type: 'success' });
+            }
+        } catch (err) {
+            setMessage({ 
+                text: `Error saat memproses gambar: ${err instanceof Error ? err.message : 'Unknown error'}`, 
+                type: 'error' 
+            });
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const saveContentChanges = async () => {
+        if (!editingContent) return;
+
+        setSavingContent(true);
+        try {
+            if (content?.id) {
+                // Update existing content
+                const response = await fetch('/api/struktur-organisasi', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: content.id,
+                        narasi: editingContent.narasi,
+                        gambar: editingContent.gambar
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    setMessage({ text: `Gagal menyimpan: ${result.error || 'Unknown error'}`, type: 'error' });
+                } else {
+                    setContent(editingContent);
+                    setMessage({ text: 'Konten berhasil diperbarui', type: 'success' });
+                }
+            } else {
+                // Insert new content
+                const response = await fetch('/api/struktur-organisasi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        narasi: editingContent.narasi,
+                        gambar: editingContent.gambar
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    setMessage({ text: `Gagal menyimpan: ${result.error || 'Unknown error'}`, type: 'error' });
+                } else if (result.data) {
+                    setContent(result.data);
+                    setEditingContent(result.data);
+                    setMessage({ text: 'Konten berhasil disimpan', type: 'success' });
+                }
+            }
+        } catch (err) {
+            setMessage({ 
+                text: `Error saat menyimpan: ${err instanceof Error ? err.message : 'Unknown error'}`, 
+                type: 'error' 
+            });
+        } finally {
+            setSavingContent(false);
+        }
+    };
+
+    const cancelContentEdit = () => {
+        if (content) {
+            setEditingContent({ ...content });
+        } else {
+            setEditingContent({
+                id: '',
+                narasi: '',
+                gambar: null
+            });
+        }
+    };
 
     const handleAssignDosen = async (jabatanId: string, dosenId: string | null) => {
         setLoading(true);
@@ -395,6 +547,93 @@ export default function StrukturOrganisasiAdmin() {
                             </button>
                         </div>
                     )}
+
+                    {/* Content Management Section */}
+                    <div className="mb-8 bg-card border border-border rounded-lg shadow-md p-6">
+                        <h2 className="text-xl font-semibold mb-6 text-foreground">Narasi & Gambar Struktur Organisasi</h2>
+                        
+                        {editingContent && (
+                            <div className="space-y-6">
+                                {/* Narasi Section */}
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                                        Narasi
+                                    </label>
+                                    <textarea
+                                        value={editingContent.narasi}
+                                        onChange={(e) => setEditingContent({
+                                            ...editingContent,
+                                            narasi: e.target.value
+                                        })}
+                                        className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring focus:outline-none text-sm"
+                                        rows={6}
+                                        placeholder="Masukkan narasi struktur organisasi..."
+                                    />
+                                </div>
+
+                                {/* Gambar Section */}
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                                        <div className="flex items-center">
+                                            <ImageIcon className="w-4 h-4 mr-1" />
+                                            <span>Gambar Struktur Organisasi</span>
+                                        </div>
+                                    </label>
+
+                                    {editingContent.gambar && (
+                                        <div className="mb-4">
+                                            <img 
+                                                src={editingContent.gambar} 
+                                                alt="Struktur Organisasi" 
+                                                className="max-h-64 rounded-lg border border-border object-contain"
+                                                onError={(e) => {
+                                                    console.error('Error loading image', e);
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage}
+                                        className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50"
+                                    />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={cancelContentEdit}
+                                        disabled={savingContent || uploadingImage}
+                                        className="px-4 py-2 rounded-md border border-border text-foreground hover:bg-muted disabled:opacity-50"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={saveContentChanges}
+                                        disabled={savingContent || uploadingImage}
+                                        className="flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                                    >
+                                        {savingContent ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                <span>Menyimpan...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4 mr-2" />
+                                                <span>Simpan Perubahan</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
                         <div>

@@ -25,18 +25,38 @@ interface JabatanStruktural {
     dosen?: DosenPosition;
 }
 
+interface StrukturContent {
+    id: string;
+    narasi: string;
+    gambar: string | null;
+}
+
 const StrukturOrganisasi: FC = () => {
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
     const [pimpinan, setPimpinan] = useState<JabatanStruktural[]>([]);
     const [ketuaProdi, setKetuaProdi] = useState<JabatanStruktural[]>([]);
     const [kepalaLab, setKepalaLab] = useState<JabatanStruktural[]>([]);
+    const [content, setContent] = useState<StrukturContent | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
+                // Fetch struktur organisasi content from MySQL API
+                try {
+                    const response = await fetch('/api/struktur-organisasi');
+                    const data = await response.json();
+                    
+                    if (data.data) {
+                        setContent(data.data);
+                    }
+                } catch (contentError) {
+                    console.error('Error fetching content:', contentError);
+                }
+
+                // Fetch positions
                 const { data: positions, error: positionsError } = await supabase
                     .from('struktural_jabatan')
                     .select('id, title, dosen_id, category, order')
@@ -140,19 +160,23 @@ const StrukturOrganisasi: FC = () => {
                     <h1 className="text-3xl font-bold text-maroon-700 mb-120 text-center">
                         Struktur Organisasi Jurusan Teknik Kimia
                     </h1>
-                    <p className="text-lg text-gray-700 mb-8 text-justify">
-                    Jurusan ini terdiri atas Ketua Jurusan, Sekretaris Jurusan, empat Kepala Program Studi (DIII Teknik Kimia, DIV Teknik Energi, DIV Teknologi Kimia Industri, S2 Energi Terbarukan, dan DIII Teknik Kimia PSDKU SIAK), serta empat Kepala Laboratorium (Laboratorium Analisis, Laboratorium Rekayasa, Laboratorium Energi, dan Laboratorium Mini Plant). Setiap unit didukung oleh dosen dan tenaga yang kompeten.
-                    </p>
+                    {content?.narasi && (
+                        <p className="text-lg text-gray-700 mb-8 text-justify">
+                            {content.narasi}
+                        </p>
+                    )}
                 </header>
 
-                <section className="w-full h-[400px] md:h-[600px] relative overflow-hidden">
-                    <Image
-                        src="/struktur-organisasi.jpg"
-                        alt="Struktur Organisasi Jurusan Teknik Kimia POLSRI"
-                        fill
-                        className="object-contain"
-                    />
-                </section>
+                {content?.gambar && (
+                    <section className="w-full h-[400px] md:h-[600px] relative overflow-hidden">
+                        <Image
+                            src={content.gambar}
+                            alt="Struktur Organisasi Jurusan Teknik Kimia POLSRI"
+                            fill
+                            className="object-contain"
+                        />
+                    </section>
+                )}
 
                 {pimpinan.length > 0 && (
                     <section>

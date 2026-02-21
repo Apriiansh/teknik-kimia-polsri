@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, X, ZoomIn } from "lucide-react";
 import Link from "next/link";
 import { createClient } from '@/utils/supabase/client';
+
 interface JurusanStat {
   id: number;
   stat_type: 'program_studi' | 'tenaga_pendidik';
@@ -354,6 +355,23 @@ export default function Home() {
     });
   };
 
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [modalTitle, setModalTitle] = useState<string>('');
+  
+  const openImageModal = (imageUrl: string, title: string) => {
+    setModalImage(imageUrl);
+    setModalTitle(title);
+  };
+  
+  const closeImageModal = () => {
+    setModalImage(null);
+    setModalTitle('');
+  };
+  
+  const isFlyerCategory = (categoryName?: string) => {
+    return categoryName?.toLowerCase().includes('flyer') || categoryName?.toLowerCase().includes('poster');
+  };
+
   return (
     <main className="w-full h-full items-center justify-center">
       <section className="relative w-full h-[500px] overflow-hidden">
@@ -534,72 +552,135 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
                   {combinedPostsData
                     .slice(0, 8)
-                    .map((post, index) => (
-                      <motion.div
-                        key={post.id}
-                        variants={cardEntryVariants}
-                        initial="initial"
-                        whileInView="inView"
-                        whileHover="hover" 
-                        transition={{ duration: 0.12, delay: index * 0.1 }}
-                        viewport={{ once: true }}
-                        className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1" 
-                      >
-                        <div className="relative h-48 overflow-hidden">
-                          <motion.div
-                            className="w-full h-full"
-                            variants={imageFilterVariants}
+                    .map((post, index) => {
+                      const isFlyer = isFlyerCategory(post.category?.name);
+                      
+                      return isFlyer ? (
+                        // Flyer - no detail page, just modal
+                        <motion.div
+                          key={post.id}
+                          variants={cardEntryVariants}
+                          initial="initial"
+                          whileInView="inView"
+                          whileHover="hover" 
+                          transition={{ duration: 0.12, delay: index * 0.1 }}
+                          viewport={{ once: true }}
+                          className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-zoom-in"
+                          onClick={() => openImageModal(post.post_image, post.title)}
+                        >
+                          <div className="relative aspect-[3/4] overflow-hidden">
+                            <motion.div
+                              className="w-full h-full"
+                              variants={imageFilterVariants}
+                            > 
+                              <img
+                                src={post.post_image || "/placeholder.png"}
+                                alt={post.title}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/placeholder.png";
+                                }}
+                                className="w-full h-full object-cover"
+                              />
+                            </motion.div>
+                            <div className="absolute top-3 left-3 z-10">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-md ${getCategoryColor(post.category)} text-white`}
+                              >
+                                {post.category?.name || "Informasi"}
+                              </span>
+                            </div>
                             
-                          > <img
-                              src={post.post_image || "/placeholder.png"}
-                              alt={post.title}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/placeholder.png";
-                              }}
-                              className="w-full h-full object-cover"
-                            />
+                            <div className="absolute bottom-3 right-3 z-10">
+                              <div className="bg-black/50 p-1.5 rounded-full">
+                                <ZoomIn size={16} className="text-white" />
+                              </div>
+                            </div>
+
+                            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-0"></div>
+                          </div>
+
+                          <div className="p-4">
+                            <h3 className="text-base font-bold mb-1 line-clamp-2 text-gray-800 group-hover:text-red-800 transition-colors">
+                              {post.title}
+                            </h3>
+
+                            <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
+                              <span className="text-xs text-gray-400">
+                                {post.published_at || post.created_at ? new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                }) : "Recent"}
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        // Non-flyer - link to detail page
+                        <Link key={post.id} href={`/info/berita/${post.slug}`}>
+                          <motion.div
+                            variants={cardEntryVariants}
+                            initial="initial"
+                            whileInView="inView"
+                            whileHover="hover" 
+                            transition={{ duration: 0.12, delay: index * 0.1 }}
+                            viewport={{ once: true }}
+                            className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                          >
+                            <div className="relative aspect-[3/4] overflow-hidden">
+                              <motion.div
+                                className="w-full h-full"
+                                variants={imageFilterVariants}
+                              > 
+                                <img
+                                  src={post.post_image || "/placeholder.png"}
+                                  alt={post.title}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/placeholder.png";
+                                  }}
+                                  className="w-full h-full object-cover"
+                                />
+                              </motion.div>
+                              <div className="absolute top-3 left-3 z-10">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-md ${getCategoryColor(post.category)} text-white`}
+                                >
+                                  {post.category?.name || "Informasi"}
+                                </span>
+                              </div>
+
+                              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-0"></div>
+                            </div>
+
+                            <div className="p-4">
+                              <h3 className="text-base font-bold mb-1 line-clamp-2 text-gray-800 group-hover:text-red-800 transition-colors">
+                                {post.title}
+                              </h3>
+                              <p className="text-gray-500 text-sm mb-3 line-clamp-2">
+                                {post.content}
+                              </p>
+
+                              <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
+                                <span className="text-xs text-gray-400">
+                                  {post.published_at || post.created_at ? new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  }) : "Recent"}
+                                </span>
+                                <span className={`text-xs font-medium flex items-center text-${getCategoryColor(post.category).replace('bg-', '').replace('-500', '-600')} hover:text-red-700`}>
+                                  Lihat Detail
+                                  <ChevronRight size={14} className="ml-0.5" />
+                                </span>
+                              </div>
+                            </div>
                           </motion.div>
-                          <div className="absolute top-4 left-4 z-10">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold shadow-md ${getCategoryColor(post.category)} text-white`}
-                            >
-                              {post.category?.name || "Informasi"}
-                            </span>
-                          </div>
-
-                          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-0"></div>
-                        </div>
-
-                        <div className="p-6">
-                          <h3 className="text-lg font-bold mb-2 line-clamp-2 text-gray-800 group-hover:text-red-800 transition-colors">
-                            {post.title}
-                          </h3>
-                          <p className="text-gray-500 text-sm mb-4 line-clamp-3">
-                            {post.content}
-                          </p>
-
-                          <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                            <span className="text-xs text-gray-400">
-                              {post.published_at || post.created_at ? new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric'
-                              }) : "Recent"}
-                            </span>
-                            <Link
-                              href={`/info/berita/${post.slug}`}
-                              className={`text-sm font-medium flex items-center text-${getCategoryColor(post.category).replace('bg-', '').replace('-500', '-600')} hover:text-red-700`}
-                            >
-                              Lihat Detail
-                              <ChevronRight size={16} className="ml-1" />
-                            </Link>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </Link>
+                      );
+                    })}
                 </div>
                 {combinedPostsData.length > 0 && (
                   <div className="mt-4 text-right">
@@ -803,6 +884,44 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Image Modal */}
+      <AnimatePresence>
+        {modalImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={closeImageModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-4xl w-full flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={closeImageModal}
+                className="self-end mb-2 text-white hover:text-gray-300 transition-colors"
+              >
+                <X size={32} />
+              </button>
+              <img
+                src={modalImage}
+                alt={modalTitle}
+                className="w-full max-h-[80vh] object-contain rounded-lg"
+              />
+              {modalTitle && (
+                <p className="text-white text-center mt-4 text-lg font-medium">
+                  {modalTitle}
+                </p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

@@ -87,7 +87,6 @@ export default function DosenStaffContent({ dosenData }: DosenStaffContentProps)
         </div>
     );
 
-    // Check if there is any data to display
     const hasData = dosenData.dosen.length > 0 || dosenData.staff.length > 0;
 
     if (!hasData) {

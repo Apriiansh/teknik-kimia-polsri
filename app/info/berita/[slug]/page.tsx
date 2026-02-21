@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { ArrowLeft, Calendar, Clock, Tag, TrendingUp, List } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Tag, TrendingUp, List, X, ZoomIn } from 'lucide-react';
 
-// Define TypeScript interfaces
 interface BeritaDetail {
     id: number;
     title: string;
@@ -263,6 +262,25 @@ export default function PostDetail() {
         return readingTime > 0 ? readingTime : 1;
     };
 
+    // Modal state for image expansion
+    const [modalImage, setModalImage] = useState<string | null>(null);
+    const [modalTitle, setModalTitle] = useState<string>('');
+    
+    const openImageModal = (imageUrl: string, title: string) => {
+        setModalImage(imageUrl);
+        setModalTitle(title);
+    };
+    
+    const closeImageModal = () => {
+        setModalImage(null);
+        setModalTitle('');
+    };
+
+    // Check if category is flyer/poster
+    const isFlyerCategory = (categoryName?: string) => {
+        return categoryName?.toLowerCase().includes('flyer') || categoryName?.toLowerCase().includes('poster');
+    };
+
     return (
         <div role="main" className="bg-gradient-to-b from-gray-50 to-gray-200 min-h-screen py-8 px-10 md:px-12">
             {isLoading ? (
@@ -301,7 +319,7 @@ export default function PostDetail() {
                     </div>
                 </div>
             ) : post ? (
-                <div className="container mx-auto px-1"> {/* px-2 diubah menjadi px-1 */}
+                <div className="container mx-auto px-0 sm:px-1"> {/* px-2 diubah menjadi px-1 */}
                     <div className="max-w-7xl mx-auto space-y-8">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Main Content */}
@@ -332,42 +350,49 @@ export default function PostDetail() {
                                         </div> */}
                                     </div>
 
-                                    {/* Post Image */}
-                                    <div className="w-full mb-4"> {/* Mengurangi margin-bottom dari mb-6 menjadi mb-4 */}
-                                        <div className="relative w-full h-[14rem] md:h-[18rem] lg:h-[24rem] bg-gray-200 rounded-lg overflow-hidden"> {/* Mengembalikan ukuran tinggi spesifik */}
+                                    {/* Post Image - Poster/Portrait Aspect Ratio */}
+                                    <div className="w-full mb-4">
+                                        <div 
+                                            className="relative w-full aspect-[3/4] max-h-[600px] bg-gray-200 rounded-lg overflow-hidden cursor-zoom-in group"
+                                            onClick={() => openImageModal(post.post_image, post.title)}
+                                        >
                                             <img
                                                 src={post.post_image || "/placeholder.png"}
                                                 alt={post.title}
-                                                className="w-full h-full object-"
+                                                className="w-full h-full object-cover"
                                             />
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={32} />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Divider */}
-                                    <hr className="border-gray-200 mb-6" />
-
-                                    {/* Content */}
-                                    <div className="text-gray-700 text-base md:text-lg leading-relaxed max-w-none">
-                                        {sections.length > 0 ? (
-                                            sections.map((section, index) => (
-                                                <div key={index} className="mb-6 last:mb-0"> {/* Spasi antar section lebih besar */}
-                                                    <p className="mb-2 whitespace-pre-line">{section.content}</p>
-                                                    {section.image && (
-                                                        <div className="mb-4 flex justify-center"> {/* Gambar di tengah dan margin bawah */}
-                                                            <img
-                                                                src={section.image}
-                                                                alt={`Section Image ${index + 1}`}
-                                                                style={{ maxWidth: '400px', maxHeight: '200px', width: '100%', height: 'auto' }}
-                                                                className="rounded-lg border border-gray-200 shadow-sm"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p>Tidak ada konten.</p>
-                                        )}
-                                    </div>
+                                    {/* Divider and Content - Hide completely for flyer category */}
+                                    {!isFlyerCategory(post.category?.name) && (
+                                        <>
+                                            <hr className="border-gray-200 mb-6" />
+                                            <div className="text-gray-700 text-base md:text-lg leading-relaxed max-w-none">
+                                                {sections.map((section, index) => (
+                                                    <div key={index} className="mb-6 last:mb-0">
+                                                        <p className="mb-2 whitespace-pre-line">{section.content}</p>
+                                                        {section.image && (
+                                                            <div 
+                                                                className="mb-4 flex justify-center cursor-zoom-in"
+                                                                onClick={() => openImageModal(section.image!, `Section ${index + 1}`)}
+                                                            >
+                                                                <img
+                                                                    src={section.image}
+                                                                    alt={`Section Image ${index + 1}`}
+                                                                    className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                                                                    style={{ maxHeight: '500px' }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
@@ -433,6 +458,36 @@ export default function PostDetail() {
                 <div className="container mx-auto px-1 text-center py-20"> {/* px-2 diubah menjadi px-1 */}
                     <h2 className="text-2xl font-bold">Informasi tidak ditemukan</h2>
                     <p className="mt-4 mb-6">Artikel yang Anda cari tidak tersedia atau telah dihapus.</p>
+                </div>
+            )}
+
+            {/* Image Modal */}
+            {modalImage && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+                    onClick={closeImageModal}
+                >
+                    <div
+                        className="relative max-w-4xl w-full flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={closeImageModal}
+                            className="self-end mb-2 text-white hover:text-gray-300 transition-colors"
+                        >
+                            <X size={32} />
+                        </button>
+                        <img
+                            src={modalImage}
+                            alt={modalTitle}
+                            className="w-full max-h-[80vh] object-contain rounded-lg"
+                        />
+                        {modalTitle && (
+                            <p className="text-white text-center mt-4 text-lg font-medium">
+                                {modalTitle}
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

@@ -248,38 +248,42 @@ export default function EditPostForm() {
             }
             console.log("Post updated successfully:", updateData);
 
-            // Delete existing sections
-            console.log("Deleting existing sections for post ID:", postId);
-            const { error: deleteError } = await supabase
-                .from('sections')
-                .delete()
-                .eq('post_id', postId);
+            // Delete existing sections (only for non-flyer categories)
+            if (!isFlyerCategory()) {
+                console.log("Deleting existing sections for post ID:", postId);
+                const { error: deleteError } = await supabase
+                    .from('sections')
+                    .delete()
+                    .eq('post_id', postId);
 
-            if (deleteError) {
-                console.error("Section deletion error:", deleteError);
-                throw new Error(`Gagal menghapus section lama: ${deleteError.message || JSON.stringify(deleteError)}`);
+                if (deleteError) {
+                    console.error("Section deletion error:", deleteError);
+                    throw new Error(`Gagal menghapus section lama: ${deleteError.message || JSON.stringify(deleteError)}`);
+                }
+                console.log("Existing sections deleted successfully");
+
+                // Insert new sections
+                console.log("Processing sections for post ID:", postId);
+                const validSections = sections.filter(section => section.content.trim() !== '');
+                const sectionsToInsert = validSections.length > 0 ? validSections : [{ content: '', sort_order: 0 }];
+
+                console.log(`Inserting ${sectionsToInsert.length} sections...`);
+                const { error: sectionsError } = await supabase
+                    .from('sections')
+                    .insert(
+                        sectionsToInsert.map((section, index) => ({
+                            post_id: postId,
+                            content: section.content,
+                            sort_order: index,
+                            image: section.image || null,
+                            created_at: new Date().toISOString()
+                        }))
+                    );
+
+                if (sectionsError) throw sectionsError;
+            } else {
+                console.log("Flyer/Poster category - skipping sections update");
             }
-            console.log("Existing sections deleted successfully");
-
-            // Insert new sections
-            console.log("Processing sections for post ID:", postId);
-            const validSections = sections.filter(section => section.content.trim() !== '');
-            const sectionsToInsert = validSections.length > 0 ? validSections : [{ content: '', sort_order: 0 }];
-
-            console.log(`Inserting ${sectionsToInsert.length} sections...`);
-            const { error: sectionsError } = await supabase
-                .from('sections')
-                .insert(
-                    sectionsToInsert.map((section, index) => ({ // Menggunakan index untuk sort_order
-                        post_id: postId,
-                        content: section.content,
-                        sort_order: index, // Memastikan urutan yang benar
-                        image: section.image || null, // Menambahkan gambar section
-                        created_at: new Date().toISOString()
-                    }))
-                );
-
-            if (sectionsError) throw sectionsError;
 
             router.push('/pages-admin/cms/posts');
         } catch (error) {
@@ -368,6 +372,12 @@ export default function EditPostForm() {
         setSections(reorderedSections);
     }
 
+    // Check if current category is flyer/poster
+    const isFlyerCategory = () => {
+        const category = categories.find(cat => cat.id === post.category_id);
+        return category?.name?.toLowerCase().includes('flyer') || category?.name?.toLowerCase().includes('poster');
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen theme-admin">
@@ -412,74 +422,95 @@ export default function EditPostForm() {
                                     />
                                 </div>
 
-                                <div className="bg-card rounded-lg shadow-md p-6 border border-border">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-medium text-card-foreground">Isi Berita</h3>
-                                        <button
-                                            type="button"
-                                            onClick={addSection}
-                                            className="inline-flex items-center px-3 py-1 border border-primary text-primary rounded-md text-sm hover:bg-primary/10"
-                                        >
-                                            <Plus className="w-4 h-4 mr-1" />
-                                            Tambah Bagian
-                                        </button>
+                                {isFlyerCategory() ? (
+                                    // Flyer/Poster Info Box
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                        <div className="flex items-start space-x-3">
+                                            <div className="bg-blue-100 p-2 rounded-full">
+                                                <ImageIcon className="w-5 h-5 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-medium text-blue-800 mb-1">Mode Flyer/Poster</h3>
+                                                <p className="text-sm text-blue-600">
+                                                    Berita dengan kategori Flyer/Poster akan menampilkan hanya <strong>Judul</strong> dan <strong>Gambar</strong> saja.
+                                                </p>
+                                                <p className="text-sm text-blue-600 mt-2">
+                                                    Saat diklik di halaman publik, gambar akan expand ke ukuran penuh.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
+                                ) : (
+                                    // Regular Isi Berita Section
+                                    <div className="bg-card rounded-lg shadow-md p-6 border border-border">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-lg font-medium text-card-foreground">Isi Berita</h3>
+                                            <button
+                                                type="button"
+                                                onClick={addSection}
+                                                className="inline-flex items-center px-3 py-1 border border-primary text-primary rounded-md text-sm hover:bg-primary/10"
+                                            >
+                                                <Plus className="w-4 h-4 mr-1" />
+                                                Tambah Bagian
+                                            </button>
+                                        </div>
 
-                                    <div className="space-y-6">
-                                        {sections.map((section, index) => (
-                                            <div key={index} className="border border-border rounded-lg p-4 bg-muted/30">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <h4 className="font-medium text-foreground">Bagian Berita {index + 1}</h4>
-                                                    <div className="flex space-x-2">
-                                                        <button
-                                                            type="button"
-                                                            disabled={index === 0}
-                                                            onClick={() => moveSection(index, 'up')}
-                                                            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                                                        >
-                                                            ↑
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            disabled={index === sections.length - 1}
-                                                            onClick={() => moveSection(index, 'down')}
-                                                            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                                                        >
-                                                            ↓
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeSection(index)}
-                                                            className="p-1 text-destructive hover:text-destructive/80"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
+                                        <div className="space-y-6">
+                                            {sections.map((section, index) => (
+                                                <div key={index} className="border border-border rounded-lg p-4 bg-muted/30">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <h4 className="font-medium text-foreground">Bagian Berita {index + 1}</h4>
+                                                        <div className="flex space-x-2">
+                                                            <button
+                                                                type="button"
+                                                                disabled={index === 0}
+                                                                onClick={() => moveSection(index, 'up')}
+                                                                className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                                            >
+                                                                ↑
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={index === sections.length - 1}
+                                                                onClick={() => moveSection(index, 'down')}
+                                                                className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                                            >
+                                                                ↓
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeSection(index)}
+                                                                className="p-1 text-destructive hover:text-destructive/80"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <textarea
+                                                        value={section.content}
+                                                        onChange={(e) => handleSectionChange(index, e.target.value)}
+                                                        className="w-full px-3 py-2 border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring focus:outline-none text-sm"
+                                                        rows={8}
+                                                        placeholder="Tulis isi bagian berita di sini..."
+                                                    />
+                                                    {/* Input upload gambar section */}
+                                                    <div className="mt-2">
+                                                        <label className="block text-sm font-medium text-muted-foreground mb-1">Gambar Bagian (Opsional)</label>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => handleSectionImageUpload(e, index)}
+                                                            className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                                                        />
+                                                        {section.image && (
+                                                            <img src={section.image} alt={`Section ${index + 1} Image`} className="mt-2 max-h-40 rounded border border-border" />
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <textarea
-                                                    value={section.content}
-                                                    onChange={(e) => handleSectionChange(index, e.target.value)}
-                                                    className="w-full px-3 py-2 border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring focus:outline-none text-sm"
-                                                    rows={8}
-                                                    placeholder="Tulis isi bagian berita di sini..."
-                                                />
-                                                {/* Input upload gambar section */}
-                                                <div className="mt-2">
-                                                    <label className="block text-sm font-medium text-muted-foreground mb-1">Gambar Bagian (Opsional)</label>
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={(e) => handleSectionImageUpload(e, index)}
-                                                        className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                                                    />
-                                                    {section.image && (
-                                                        <img src={section.image} alt={`Section ${index + 1} Image`} className="mt-2 max-h-40 rounded border border-border" />
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
                             {/* Sidebar */}
@@ -558,6 +589,9 @@ export default function EditPostForm() {
 
                                             <div className="text-xs text-muted-foreground/80 mb-2">
                                                 URL Gambar: {post.post_image ? post.post_image : 'tidak ada'}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground/80 mb-2">
+                                                Ukuran 3:4 (Saran: 1080x1440px atau 1350x1800px)
                                             </div>
 
                                             {post.post_image && (

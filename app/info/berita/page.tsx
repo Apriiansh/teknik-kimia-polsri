@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { ArrowLeft, ArrowRight, Calendar, Search, Tag } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, Search, Tag, X, ZoomIn } from 'lucide-react';
 
 // Define TypeScript interfaces
 interface BeritaItem {
@@ -281,6 +281,24 @@ export default function BeritaListing() {
         return textColor;
     };
 
+    // Modal state for image expansion
+    const [modalImage, setModalImage] = useState<string | null>(null);
+    const [modalTitle, setModalTitle] = useState<string>('');
+    
+    const openImageModal = (imageUrl: string, title: string) => {
+        setModalImage(imageUrl);
+        setModalTitle(title);
+    };
+    
+    const closeImageModal = () => {
+        setModalImage(null);
+        setModalTitle('');
+    };
+
+    // Check if category is flyer/poster
+    const isFlyerCategory = (categoryName?: string) => {
+        return categoryName?.toLowerCase().includes('flyer') || categoryName?.toLowerCase().includes('poster');
+    };
 
     return (
         <main className="w-full pt-8 pb-16 bg-gray-50 min-h-screen">
@@ -388,54 +406,132 @@ export default function BeritaListing() {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {berita.map((post) => (
-                            <div key={post.id} className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-                                <div className="relative aspect-square overflow-hidden group"> {/* Menggunakan aspect-square untuk rasio 1:1 */}
-                                    <img
-                                        src={post.post_image || "/placeholder.png"}
-                                        alt={post.title}
-                                        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
-                                        className="w-full h-full object-cover object-center"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-from-b from-transparent to-black opacity-0 group-hover:opacity-30 transition-opacity" />
-                                </div>
-                                <div className="p-4 flex flex-col flex-grow">
-                                    <div> {/* Wrapper untuk konten atas */}
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <Calendar size={14} className="text-gray-500" />
-                                            <span className="text-xs text-gray-500">
-                                                {formatDate(post.published_at || post.created_at)}
-                                            </span>
-                                            {post.category && (
-                                                <>
-                                                    <span className="text-gray-300">•</span>
-                                                    <div className="flex items-center">
-                                                        <Tag size={14} className="text-gray-500 mr-1" />
-                                                        <span className="text-xs text-gray-500">{post.category.name}</span>
-                                                    </div>
-                                                </>
-                                            )}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {berita.map((post) => {
+                            const isFlyer = isFlyerCategory(post.category?.name);
+                            return isFlyer ? (
+                                // Flyer - no detail page, just modal
+                                <div 
+                                    key={post.id} 
+                                    className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-zoom-in"
+                                    onClick={() => openImageModal(post.post_image, post.title)}
+                                >
+                                    <div className="relative aspect-[3/4] overflow-hidden">
+                                        <img
+                                            src={post.post_image || "/placeholder.png"}
+                                            alt={post.title}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                                            className="w-full h-full object-cover object-center"
+                                        />
+                                        <div className="absolute bottom-2 right-2 z-10">
+                                            <div className="bg-black/50 p-1.5 rounded-full">
+                                                <ZoomIn size={16} className="text-white" />
+                                            </div>
                                         </div>
-                                        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2 group-hover:text-red-800 transition-colors">{post.title}</h3>
-                                        {/* Deskripsi singkat bisa ditambahkan di sini jika diinginkan */}
-                                        {/* <p className="text-sm text-gray-600 line-clamp-3 mb-4">{post.content}</p> */}
+                                        <div className="absolute inset-0 bg-gradient-from-b from-transparent to-black opacity-0 group-hover:opacity-30 transition-opacity" />
                                     </div>
-                                    <div className="pt-2 border-t border-gray-100 flex justify-end">
-                                        <Link href={`/info/berita/${post.slug}`} className={`text-sm font-medium inline-flex items-center ${getLinkTextColorClass(post.category?.name)} transition-colors`}>
-                                            Lihat Detail
-                                            <ArrowRight size={14} className="ml-1" />
-                                        </Link>
+                                    <div className="p-3 flex flex-col flex-grow">
+                                        <div>
+                                            <div className="flex items-center space-x-2 mb-1">
+                                                <Calendar size={12} className="text-gray-500" />
+                                                <span className="text-xs text-gray-500">
+                                                    {formatDate(post.published_at || post.created_at)}
+                                                </span>
+                                                {post.category && (
+                                                    <>
+                                                        <span className="text-gray-300">•</span>
+                                                        <div className="flex items-center">
+                                                            <Tag size={12} className="text-gray-500 mr-1" />
+                                                            <span className="text-xs text-gray-500">{post.category.name}</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <h3 className="text-base font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-red-800 transition-colors">{post.title}</h3>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ) : (
+                                // Non-flyer - link to detail page
+                                <Link
+                                    key={post.id}
+                                    href={`/info/berita/${post.slug}`}
+                                    className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
+                                >
+                                    <div className="relative aspect-[3/4] overflow-hidden">
+                                        <img
+                                            src={post.post_image || "/placeholder.png"}
+                                            alt={post.title}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                                            className="w-full h-full object-cover object-center"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-from-b from-transparent to-black opacity-0 group-hover:opacity-30 transition-opacity" />
+                                    </div>
+                                    <div className="p-3 flex flex-col flex-grow">
+                                        <div>
+                                            <div className="flex items-center space-x-2 mb-1">
+                                                <Calendar size={12} className="text-gray-500" />
+                                                <span className="text-xs text-gray-500">
+                                                    {formatDate(post.published_at || post.created_at)}
+                                                </span>
+                                                {post.category && (
+                                                    <>
+                                                        <span className="text-gray-300">•</span>
+                                                        <div className="flex items-center">
+                                                            <Tag size={12} className="text-gray-500 mr-1" />
+                                                            <span className="text-xs text-gray-500">{post.category.name}</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <h3 className="text-base font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-red-800 transition-colors">{post.title}</h3>
+                                        </div>
+                                        <div className="pt-2 border-t border-gray-100 flex justify-end mt-auto">
+                                            <span className={`text-sm font-medium inline-flex items-center ${getLinkTextColorClass(post.category?.name)} transition-colors`}>
+                                                Lihat Detail
+                                                <ArrowRight size={14} className="ml-1" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                 )}
 
                 {/* Pagination */}
                 {/* Pagination section removed */}
             </div>
+
+            {/* Image Modal */}
+            {modalImage && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+                    onClick={closeImageModal}
+                >
+                    <div
+                        className="relative max-w-4xl w-full flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={closeImageModal}
+                            className="self-end mb-2 text-white hover:text-gray-300 transition-colors"
+                        >
+                            <X size={32} />
+                        </button>
+                        <img
+                            src={modalImage}
+                            alt={modalTitle}
+                            className="w-full max-h-[80vh] object-contain rounded-lg"
+                        />
+                        {modalTitle && (
+                            <p className="text-white text-center mt-4 text-lg font-medium">
+                                {modalTitle}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

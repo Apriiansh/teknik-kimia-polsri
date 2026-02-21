@@ -19,8 +19,8 @@ Folder ini di-gitignore untuk keamanan. Jangan commit file sensitif ke repositor
         ├── server.js       ← Entry point
         ├── package.json
         ├── .env            ← Environment variables
-        ├── public/         ← Static assets (gambar, dll) - TETAP DI SINI
-        │   ├── logo-polsri.jpg
+        ├── public/         ← Static assets (gambar, dll)
+        │   ├── logo.jpg
         │   ├── slide1.jpg
         │   └── ...
         └── .next/
@@ -78,9 +78,6 @@ screen -S nextjs
 
 # Masuk ke folder standalone
 cd ~/server/standalone
-
-# Set permission .env
-chmod 600 .env
 
 # Jalankan server dengan HOSTNAME dan PORT
 HOSTNAME="0.0.0.0" PORT=3000 /opt/cpanel/ea-nodejs22/bin/node server.js
