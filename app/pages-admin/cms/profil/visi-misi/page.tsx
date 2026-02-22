@@ -24,7 +24,7 @@ interface VisiMisiKonten {
   judul_visi: string | null;
   isi_visi: string | null;
   judul_misi: string | null;
-  poin_misi: string[]; // Array of strings
+  poin_misi: string[];
   updated_at?: string;
 }
 
@@ -34,7 +34,7 @@ const initialFormData: Omit<VisiMisiKonten, 'id' | 'updated_at'> = {
   judul_visi: 'Visi',
   isi_visi: '',
   judul_misi: 'Misi',
-  poin_misi: [''], // Mulai dengan satu poin misi kosong
+  poin_misi: [''], 
 };
 
 const KONTEN_ID = 'konten_utama';
@@ -62,10 +62,10 @@ export default function VisiMisiCMSPage() {
     } else if (data) {
       setFormData({
         ...data,
-        poin_misi: Array.isArray(data.poin_misi) ? data.poin_misi : [''], // Pastikan poin_misi adalah array
+        poin_misi: Array.isArray(data.poin_misi) ? data.poin_misi : [''], 
       });
     } else {
-      setFormData(initialFormData); // Jika tidak ada data, gunakan initial
+      setFormData(initialFormData); 
     }
     setLoading(false);
   };
@@ -90,7 +90,7 @@ export default function VisiMisiCMSPage() {
   };
 
   const removePoinMisi = (index: number) => {
-    if (formData.poin_misi.length <= 1) return; // Jangan hapus jika hanya satu
+    if (formData.poin_misi.length <= 1) return; 
     const newPoinMisi = formData.poin_misi.filter((_, i) => i !== index);
     setFormData((prev) => ({ ...prev, poin_misi: newPoinMisi }));
   };
@@ -104,7 +104,7 @@ export default function VisiMisiCMSPage() {
     const dataToSubmit = {
       ...formData,
       id: KONTEN_ID,
-      poin_misi: formData.poin_misi.filter(poin => poin.trim() !== ''), // Hanya simpan poin yang tidak kosong
+      poin_misi: formData.poin_misi.filter(poin => poin.trim() !== ''), 
       updated_at: new Date().toISOString(),
     };
 
@@ -117,13 +117,12 @@ export default function VisiMisiCMSPage() {
       setError(`Gagal menyimpan konten: ${upsertError.message}`);
     } else {
       setSuccess('Konten Visi dan Misi berhasil disimpan.');
-      fetchData(); // Re-fetch data
+      fetchData(); 
     }
     setIsSubmitting(false);
   };
 
   if (loading) {
-    // Loading state with sidebar
     return (
         <div className="min-h-screen theme-admin">
             <SidebarAdmin />
@@ -141,8 +140,8 @@ export default function VisiMisiCMSPage() {
     <div className="min-h-screen theme-admin">
       <SidebarAdmin />
       <main className="ml-72 px-4 py-6 md:px-6 md:py-8 bg-background w-[calc(100%-18rem)] min-h-screen overflow-y-auto">
-        <div className="container mx-auto"> {/* Container asli dipertahankan di dalam main */}
-          <h1 className="text-2xl font-bold mb-4 flex items-center text-foreground"> {/* Margin bottom dikurangi lagi menjadi mb-4 */}
+        <div className="container mx-auto"> 
+          <h1 className="text-2xl font-bold mb-4 flex items-center text-foreground"> 
             <Target className="mr-3 w-6 h-6" /> Manajemen Visi dan Misi
           </h1>
 
@@ -204,7 +203,7 @@ export default function VisiMisiCMSPage() {
               </CardContent>
             </Card>
 
-            <div className="mt-6 flex justify-end"> {/* CardFooter dihilangkan, diganti div dengan margin atas dan flexbox untuk alignment */}
+            <div className="mt-6 flex justify-end"> 
               <Button type="submit" disabled={isSubmitting || loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
                 {isSubmitting && <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-current ml-2"></span>}

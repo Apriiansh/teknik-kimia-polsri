@@ -4,10 +4,8 @@ interface Mahasiswa {
   id_mhs: string;
   nama: string;
   nim: string;
-  // Tambahkan properti lain yang Anda select dari tabel mahasiswa jika diperlukan
 }
-// d:\New folder\si_tekkim\lib\data.ts
-// ...
+
 export async function getDaftarMahasiswaKelas(targetKelas: string, targetProdi: string, targetAngkatan: string) {
   const supabase = await createClient(); 
 
@@ -16,15 +14,12 @@ export async function getDaftarMahasiswaKelas(targetKelas: string, targetProdi: 
     .select('id_mhs, nama, nim') 
     .eq('kelas', targetKelas)
     .eq('prodi', targetProdi)
-    .eq('angkatan', targetAngkatan) // <-- INI DIA KUNCINYA!
+    .eq('angkatan', targetAngkatan)
     .order('nama', { ascending: true }); 
-// ...
 
   if (error) {
     console.error("Error fetching daftar mahasiswa:", error);
     return [];
   }
-  return mahasiswaList as Mahasiswa[]; // Memberikan tipe yang lebih spesifik
+  return mahasiswaList as Mahasiswa[];
 }
-
-// Anda bisa menambahkan fungsi-fungsi query data lainnya di sini

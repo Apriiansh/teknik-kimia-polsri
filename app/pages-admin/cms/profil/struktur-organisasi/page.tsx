@@ -1,9 +1,7 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Trash2, Edit3, UserPlus, Image as ImageIcon, Save, Loader2 } from 'lucide-react'; // Import ikon UserPlus
 import SidebarAdmin from '@/components/SidebarAdmin'; // Import SidebarAdmin
 
@@ -33,7 +31,6 @@ interface StrukturContent {
 
 export default function StrukturOrganisasiAdmin() {
     const supabase = createClient();
-    const router = useRouter();
     const [dosen, setDosen] = useState<Dosen[]>([]);
     const [jabatan, setJabatan] = useState<JabatanStruktural[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -78,26 +75,26 @@ export default function StrukturOrganisasiAdmin() {
                     setDosen(dosenData || []);
                 }
 
-                // Fetch struktur organisasi content from MySQL API
-                try {
-                    const response = await fetch('/api/struktur-organisasi');
-                    const data = await response.json();
-                    
-                    if (data.data) {
-                        setContent(data.data);
-                        setEditingContent({ ...data.data });
-                    } else {
-                        // Initialize empty content
-                        const emptyContent: StrukturContent = {
-                            id: '',
-                            narasi: '',
-                            gambar: null
-                        };
-                        setEditingContent(emptyContent);
-                    }
-                } catch (contentError) {
+                // Fetch struktur organisasi content from Supabase
+                const { data: contentData, error: contentError } = await supabase
+                    .from('struktur_organisasi_content')
+                    .select('id, narasi, gambar')
+                    .order('id', { ascending: true })
+                    .limit(1);
+
+                if (contentError) {
                     console.error('Error fetching content:', contentError);
-                    // Initialize empty content
+                    setMessage({ text: 'Error fetching content data', type: 'error' });
+                    const emptyContent: StrukturContent = {
+                        id: '',
+                        narasi: '',
+                        gambar: null
+                    };
+                    setEditingContent(emptyContent);
+                } else if (contentData && contentData.length > 0) {
+                    setContent(contentData[0] as StrukturContent);
+                    setEditingContent({ ...(contentData[0] as StrukturContent) });
+                } else {
                     const emptyContent: StrukturContent = {
                         id: '',
                         narasi: '',
@@ -196,11 +193,24 @@ export default function StrukturOrganisasiAdmin() {
 
         setSavingContent(true);
         try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+
+            if (!accessToken) {
+                setMessage({ text: 'Sesi login tidak ditemukan. Silakan login ulang.', type: 'error' });
+                return;
+            }
+
             if (content?.id) {
                 // Update existing content
                 const response = await fetch('/api/struktur-organisasi', {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`,
+                    },
                     body: JSON.stringify({
                         id: content.id,
                         narasi: editingContent.narasi,
@@ -212,15 +222,19 @@ export default function StrukturOrganisasiAdmin() {
 
                 if (!response.ok) {
                     setMessage({ text: `Gagal menyimpan: ${result.error || 'Unknown error'}`, type: 'error' });
-                } else {
-                    setContent(editingContent);
+                } else if (result.data) {
+                    setContent(result.data as StrukturContent);
+                    setEditingContent(result.data as StrukturContent);
                     setMessage({ text: 'Konten berhasil diperbarui', type: 'success' });
                 }
             } else {
                 // Insert new content
                 const response = await fetch('/api/struktur-organisasi', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`,
+                    },
                     body: JSON.stringify({
                         narasi: editingContent.narasi,
                         gambar: editingContent.gambar
@@ -232,8 +246,8 @@ export default function StrukturOrganisasiAdmin() {
                 if (!response.ok) {
                     setMessage({ text: `Gagal menyimpan: ${result.error || 'Unknown error'}`, type: 'error' });
                 } else if (result.data) {
-                    setContent(result.data);
-                    setEditingContent(result.data);
+                    setContent(result.data as StrukturContent);
+                    setEditingContent(result.data as StrukturContent);
                     setMessage({ text: 'Konten berhasil disimpan', type: 'success' });
                 }
             }

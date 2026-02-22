@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  compiler: {
+    removeConsole: { exclude: ["error", "warn"] }
+  },
   images: {
     remotePatterns: [
       {

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Users, X, ZoomIn } from "lucide-react";
 import Link from "next/link";
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from "@/utils/supabase/client";
 
 interface JurusanStat {
   id: number;
-  stat_type: 'program_studi' | 'tenaga_pendidik';
+  stat_type: "program_studi" | "tenaga_pendidik";
   name: string;
   count: number;
 }
@@ -60,7 +60,14 @@ interface TestimoniAlumniItem {
   } | null;
 }
 
-const images = ["/slide1.jpg", "/slide2.jpg", "/slide3.jpg"];
+const images = [
+  "/layout1.png",
+  "/layout2.png",
+  "/layout3.png",
+  "/layout4.png",
+  "/layout5.png",
+  "/layout6.png",
+];
 
 const companyLogos = [
   "/logo-pertamina.png",
@@ -89,22 +96,26 @@ export default function Home() {
   const [testimoniError, setTestimoniError] = useState<string | null>(null);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [testimonialDirection, setTestimonialDirection] = useState(0);
-  
-  const [expandedKegiatan, setExpandedKegiatan] = useState<Set<string>>(new Set());
-  
+
+  const [expandedKegiatan, setExpandedKegiatan] = useState<Set<string>>(
+    new Set(),
+  );
+
   const getInitialXTranslation = (index: number): string => {
     let initialItemWidthPercent = 90;
     if (typeof window !== "undefined") {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
         initialItemWidthPercent = 45;
-      } else if (window.matchMedia('(min-width: 768px)').matches) {
+      } else if (window.matchMedia("(min-width: 768px)").matches) {
         initialItemWidthPercent = 60;
       }
     }
     const initialOffsetPercent = (100 - initialItemWidthPercent) / 2;
     return `calc(-${index * initialItemWidthPercent}% + ${initialOffsetPercent}%)`;
   };
-  const [testimonialXTranslation, setTestimonialXTranslation] = useState(() => getInitialXTranslation(currentTestimonialIndex));
+  const [testimonialXTranslation, setTestimonialXTranslation] = useState(() =>
+    getInitialXTranslation(currentTestimonialIndex),
+  );
   const [combinedPostsData, setCombinedPostsData] = useState<BeritaItem[]>([]);
   const supabase = createClient();
 
@@ -117,11 +128,11 @@ export default function Home() {
     initial: { filter: "grayscale(100%)" },
     inView: {
       filter: "grayscale(0%)",
-      transition: { duration: 0.6, ease: "easeOut" as const, delay: 0.4 }
+      transition: { duration: 0.6, ease: "easeOut" as const, delay: 0.4 },
     },
     hover: {
       filter: "grayscale(0%)",
-      transition: { duration: 0.3, ease: "easeOut" as const, delay: 0.1 }
+      transition: { duration: 0.3, ease: "easeOut" as const, delay: 0.1 },
     },
   };
   const autoSlideIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -131,15 +142,19 @@ export default function Home() {
       try {
         setIsLoading(true);
         const { data, error } = await supabase
-          .from('jurusan_stats')
-          .select('*')
-          .order('id');
+          .from("jurusan_stats")
+          .select("*")
+          .order("id");
 
         if (error) throw error;
 
         if (data) {
-          setProdiStats(data.filter(stat => stat.stat_type === 'program_studi'));
-          setPendidikStats(data.filter(stat => stat.stat_type === 'tenaga_pendidik'));
+          setProdiStats(
+            data.filter((stat) => stat.stat_type === "program_studi"),
+          );
+          setPendidikStats(
+            data.filter((stat) => stat.stat_type === "tenaga_pendidik"),
+          );
         }
       } catch (error) {
       } finally {
@@ -154,22 +169,28 @@ export default function Home() {
     try {
       setIsLoading(true);
       const { data: postsWithCategories, error: postsError } = await supabase
-        .from('berita')
-        .select(`
+        .from("berita")
+        .select(
+          `
           *,
           category:category_id(id, name, slug)
-        `)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
 
       if (postsError) {
         setCombinedPostsData([]);
         return;
       }
 
-      const formattedPosts = postsWithCategories.map(post => ({
+      const formattedPosts = postsWithCategories.map((post) => ({
         ...post,
-        content: post.content || (post.sections && post.sections.length > 0 ? post.sections[0].content : '')
+        content:
+          post.content ||
+          (post.sections && post.sections.length > 0
+            ? post.sections[0].content
+            : ""),
       }));
 
       setCombinedPostsData(formattedPosts || []);
@@ -178,7 +199,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchAllPosts();
@@ -190,9 +211,9 @@ export default function Home() {
     try {
       setKegiatanError(null);
       const { data, error } = await supabase
-        .from('kegiatan')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("kegiatan")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(8);
 
       if (error) {
@@ -202,16 +223,22 @@ export default function Home() {
       }
 
       if (data) {
-        const formattedData = data.map(item => ({
+        const formattedData = data.map((item) => ({
           ...item,
-          image_urls: Array.isArray(item.image_urls) ? item.image_urls : (item.image_urls ? [String(item.image_urls)] : [])
+          image_urls: Array.isArray(item.image_urls)
+            ? item.image_urls
+            : item.image_urls
+              ? [String(item.image_urls)]
+              : [],
         }));
         setKegiatanData(formattedData as KegiatanPublikItem[]);
       } else {
         setKegiatanData([]);
       }
     } catch (error: any) {
-      setKegiatanError(`Terjadi kesalahan saat memuat kegiatan: ${error.message || 'Unknown error'}`);
+      setKegiatanError(
+        `Terjadi kesalahan saat memuat kegiatan: ${error.message || "Unknown error"}`,
+      );
       setKegiatanData([]);
     }
   };
@@ -220,12 +247,14 @@ export default function Home() {
     try {
       setTestimoniError(null);
       const { data, error } = await supabase
-        .from('testimoni_alumni')
-        .select(`
+        .from("testimoni_alumni")
+        .select(
+          `
           id, photo_url, nama_alumni, prodi, angkatan, testimoni, created_at,
           alumni:alumni_id (pekerjaan)
-        `)
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .order("created_at", { ascending: false });
 
       if (error) {
         setTestimoniError(`Gagal memuat testimoni: ${error.message}`);
@@ -235,11 +264,14 @@ export default function Home() {
       }
 
       if (data && data.length > 0) {
-        const formattedData = data.map(item => ({
+        const formattedData = data.map((item) => ({
           ...item,
-          alumni: Array.isArray(item.alumni) && item.alumni.length > 0 
-            ? item.alumni[0] 
-            : (item.alumni && !Array.isArray(item.alumni) ? item.alumni : null)
+          alumni:
+            Array.isArray(item.alumni) && item.alumni.length > 0
+              ? item.alumni[0]
+              : item.alumni && !Array.isArray(item.alumni)
+                ? item.alumni
+                : null,
         }));
         setTestimoniData(formattedData as TestimoniAlumniItem[]);
         const middleIndex = Math.floor(data.length / 2);
@@ -249,7 +281,9 @@ export default function Home() {
         setCurrentTestimonialIndex(0);
       }
     } catch (error: any) {
-      setTestimoniError(`Terjadi kesalahan saat memuat testimoni: ${error.message || 'Unknown error'}`);
+      setTestimoniError(
+        `Terjadi kesalahan saat memuat testimoni: ${error.message || "Unknown error"}`,
+      );
       setTestimoniData([]);
       setCurrentTestimonialIndex(0);
     }
@@ -258,24 +292,27 @@ export default function Home() {
   useEffect(() => {
     const calculateTestimonialXTranslation = () => {
       let currentItemWidthPercent = 90;
-      
+
       if (typeof window !== "undefined") {
-        if (window.matchMedia('(min-width: 1024px)').matches) {
+        if (window.matchMedia("(min-width: 1024px)").matches) {
           currentItemWidthPercent = 45;
-        } else if (window.matchMedia('(min-width: 768px)').matches) {
+        } else if (window.matchMedia("(min-width: 768px)").matches) {
           currentItemWidthPercent = 60;
         }
       }
 
       const offsetPercent = (100 - currentItemWidthPercent) / 2;
-      setTestimonialXTranslation(`calc(-${currentTestimonialIndex * currentItemWidthPercent}% + ${offsetPercent}%)`);
+      setTestimonialXTranslation(
+        `calc(-${currentTestimonialIndex * currentItemWidthPercent}% + ${offsetPercent}%)`,
+      );
     };
 
     calculateTestimonialXTranslation();
-    window.addEventListener('resize', calculateTestimonialXTranslation);
-    return () => window.removeEventListener('resize', calculateTestimonialXTranslation);
+    window.addEventListener("resize", calculateTestimonialXTranslation);
+    return () =>
+      window.removeEventListener("resize", calculateTestimonialXTranslation);
   }, [currentTestimonialIndex]);
-  
+
   useEffect(() => {
     const startAutoSlide = () => {
       if (autoSlideIntervalRef.current) {
@@ -295,7 +332,7 @@ export default function Home() {
 
   const handleManualNavigation = (direction: number) => {
     setCurrentIndex(
-      (prevIndex) => (prevIndex + direction + images.length) % images.length
+      (prevIndex) => (prevIndex + direction + images.length) % images.length,
     );
 
     if (autoSlideIntervalRef.current) {
@@ -307,10 +344,10 @@ export default function Home() {
   };
 
   const categoryColorMap: Record<string, string> = {
-    "Berita": "bg-emerald-500",
+    Berita: "bg-emerald-500",
     "Lowongan Kerja": "bg-blue-500",
-    "Pengumuman": "bg-amber-500",
-    "Akademik": "bg-purple-500",
+    Pengumuman: "bg-amber-500",
+    Akademik: "bg-purple-500",
   };
 
   const getProdiColor = (index: number): string => {
@@ -319,7 +356,7 @@ export default function Home() {
       "bg-blue-500",
       "bg-purple-500",
       "bg-red-500",
-      "bg-orange-500"
+      "bg-orange-500",
     ];
     return colors[index % colors.length];
   };
@@ -332,7 +369,7 @@ export default function Home() {
   const paginateTestimonials = (newDirection: number) => {
     if (testimoniData.length <= 1) return;
     setTestimonialDirection(newDirection);
-    setCurrentTestimonialIndex(prevIndex => {
+    setCurrentTestimonialIndex((prevIndex) => {
       let newIndex = prevIndex + newDirection;
       if (newIndex < 0) {
         newIndex = testimoniData.length - 1;
@@ -344,7 +381,7 @@ export default function Home() {
   };
 
   const toggleKegiatanExpansion = (id: string) => {
-    setExpandedKegiatan(prev => {
+    setExpandedKegiatan((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id);
@@ -356,20 +393,23 @@ export default function Home() {
   };
 
   const [modalImage, setModalImage] = useState<string | null>(null);
-  const [modalTitle, setModalTitle] = useState<string>('');
-  
+  const [modalTitle, setModalTitle] = useState<string>("");
+
   const openImageModal = (imageUrl: string, title: string) => {
     setModalImage(imageUrl);
     setModalTitle(title);
   };
-  
+
   const closeImageModal = () => {
     setModalImage(null);
-    setModalTitle('');
+    setModalTitle("");
   };
-  
+
   const isFlyerCategory = (categoryName?: string) => {
-    return categoryName?.toLowerCase().includes('flyer') || categoryName?.toLowerCase().includes('poster');
+    return (
+      categoryName?.toLowerCase().includes("flyer") ||
+      categoryName?.toLowerCase().includes("poster")
+    );
   };
 
   return (
@@ -393,7 +433,7 @@ export default function Home() {
                     className="w-full h-full brightness-75 object-cover"
                   />
                 </motion.div>
-              )
+              ),
           )}
         </AnimatePresence>
 
@@ -414,7 +454,8 @@ export default function Home() {
             transition={{ duration: 0.12, delay: 0.3 }}
             className="text-sm sm:text-base md:text-base font-light max-w-full md:max-w-3xl whitespace-normal"
           >
-            Menyediakan informasi terkini mengenai akademik, kegiatan, dan layanan administrasi Jurusan Teknik Kimia.
+            Menyediakan informasi terkini mengenai akademik, kegiatan, dan
+            layanan administrasi Jurusan Teknik Kimia.
           </motion.p>
         </div>
       </section>
@@ -465,7 +506,7 @@ export default function Home() {
                 let iconColor;
                 if (isProdi) {
                   if (stat.name === "D4 Teknik Energi") {
-                    iconColor = "text-purple-600"; 
+                    iconColor = "text-purple-600";
                   } else {
                     iconColor = `text-${getProdiColor(index).replace("bg-", "")}`;
                   }
@@ -477,16 +518,16 @@ export default function Home() {
                   : "bg-emerald-100";
                 let textColor;
                 if (isProdi) {
-                  const baseColorName = getProdiColor(index).replace("bg-", ""); 
+                  const baseColorName = getProdiColor(index).replace("bg-", "");
                   if (stat.name === "D4 Teknik Energi") {
-                    textColor = "text-purple-700"; 
+                    textColor = "text-purple-700";
                   } else if (stat.name === "S2 Energi Terbarukan") {
                     textColor = "text-orange-500";
                   } else {
                     textColor = `text-${baseColorName.replace("-500", "-700")}`;
                   }
                 } else {
-                  textColor = "text-emerald-700"; 
+                  textColor = "text-emerald-700";
                 }
 
                 const value = stat.count || 0;
@@ -512,7 +553,9 @@ export default function Home() {
                           value={value}
                           className={`text-xl font-bold ${textColor}`}
                           formatter={(value) =>
-                            value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                            value
+                              .toString()
+                              .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
                           }
                           delay={index * 100}
                           triggerOnView={true}
@@ -530,14 +573,14 @@ export default function Home() {
         </div>
       </section>
 
-
       <section className="py-8 bg-gradient-to-r from-gray-100 to-gray-200">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-1">
             INFORMASI TERKINI
           </h2>
           <p className="text-gray-600 text-center mb-6 max-w-2xl mx-auto">
-            Dapatkan update terbaru seputar berita, dan pengumuman resmi dari Jurusan Teknik Kimia.
+            Dapatkan update terbaru seputar berita, dan pengumuman resmi dari
+            Jurusan Teknik Kimia.
           </p>
 
           <div className="relative">
@@ -553,34 +596,99 @@ export default function Home() {
             ) : (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
-                  {combinedPostsData
-                    .slice(0, 8)
-                    .map((post, index) => {
-                      const isFlyer = isFlyerCategory(post.category?.name);
-                      
-                      return isFlyer ? (
-                        // Flyer - no detail page, just modal
+                  {combinedPostsData.slice(0, 8).map((post, index) => {
+                    const isFlyer = isFlyerCategory(post.category?.name);
+
+                    return isFlyer ? (
+                      // Flyer - no detail page, just modal
+                      <motion.div
+                        key={post.id}
+                        variants={cardEntryVariants}
+                        initial="initial"
+                        whileInView="inView"
+                        whileHover="hover"
+                        transition={{ duration: 0.12, delay: index * 0.1 }}
+                        viewport={{ once: true }}
+                        className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-zoom-in"
+                        onClick={() =>
+                          openImageModal(post.post_image, post.title)
+                        }
+                      >
+                        <div className="relative aspect-[3/4] overflow-hidden">
+                          <motion.div
+                            className="w-full h-full"
+                            variants={imageFilterVariants}
+                          >
+                            <img
+                              src={post.post_image || "/placeholder.png"}
+                              alt={post.title}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "/placeholder.png";
+                              }}
+                              className="w-full h-full object-cover"
+                            />
+                          </motion.div>
+                          <div className="absolute top-3 left-3 z-10">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-md ${getCategoryColor(post.category)} text-white`}
+                            >
+                              {post.category?.name || "Informasi"}
+                            </span>
+                          </div>
+
+                          <div className="absolute bottom-3 right-3 z-10">
+                            <div className="bg-black/50 p-1.5 rounded-full">
+                              <ZoomIn size={16} className="text-white" />
+                            </div>
+                          </div>
+
+                          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-0"></div>
+                        </div>
+
+                        <div className="p-4">
+                          <h3 className="text-base font-bold mb-1 line-clamp-2 text-gray-800 group-hover:text-red-800 transition-colors">
+                            {post.title}
+                          </h3>
+
+                          <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
+                            <span className="text-xs text-gray-400">
+                              {post.published_at || post.created_at
+                                ? new Date(
+                                    post.published_at || post.created_at,
+                                  ).toLocaleDateString("id-ID", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                : "Recent"}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      // Non-flyer - link to detail page
+                      <Link key={post.id} href={`/info/berita/${post.slug}`}>
                         <motion.div
-                          key={post.id}
                           variants={cardEntryVariants}
                           initial="initial"
                           whileInView="inView"
-                          whileHover="hover" 
+                          whileHover="hover"
                           transition={{ duration: 0.12, delay: index * 0.1 }}
                           viewport={{ once: true }}
-                          className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-zoom-in"
-                          onClick={() => openImageModal(post.post_image, post.title)}
+                          className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                         >
                           <div className="relative aspect-[3/4] overflow-hidden">
                             <motion.div
                               className="w-full h-full"
                               variants={imageFilterVariants}
-                            > 
+                            >
                               <img
                                 src={post.post_image || "/placeholder.png"}
                                 alt={post.title}
                                 onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "/placeholder.png";
+                                  (e.target as HTMLImageElement).src =
+                                    "/placeholder.png";
                                 }}
                                 className="w-full h-full object-cover"
                               />
@@ -592,12 +700,6 @@ export default function Home() {
                                 {post.category?.name || "Informasi"}
                               </span>
                             </div>
-                            
-                            <div className="absolute bottom-3 right-3 z-10">
-                              <div className="bg-black/50 p-1.5 rounded-full">
-                                <ZoomIn size={16} className="text-white" />
-                              </div>
-                            </div>
 
                             <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-0"></div>
                           </div>
@@ -606,81 +708,34 @@ export default function Home() {
                             <h3 className="text-base font-bold mb-1 line-clamp-2 text-gray-800 group-hover:text-red-800 transition-colors">
                               {post.title}
                             </h3>
+                            <p className="text-gray-500 text-sm mb-3 line-clamp-2">
+                              {post.content}
+                            </p>
 
                             <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
                               <span className="text-xs text-gray-400">
-                                {post.published_at || post.created_at ? new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric'
-                                }) : "Recent"}
+                                {post.published_at || post.created_at
+                                  ? new Date(
+                                      post.published_at || post.created_at,
+                                    ).toLocaleDateString("id-ID", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })
+                                  : "Recent"}
+                              </span>
+                              <span
+                                className={`text-xs font-medium flex items-center text-${getCategoryColor(post.category).replace("bg-", "").replace("-500", "-600")} hover:text-red-700`}
+                              >
+                                Lihat Detail
+                                <ChevronRight size={14} className="ml-0.5" />
                               </span>
                             </div>
                           </div>
                         </motion.div>
-                      ) : (
-                        // Non-flyer - link to detail page
-                        <Link key={post.id} href={`/info/berita/${post.slug}`}>
-                          <motion.div
-                            variants={cardEntryVariants}
-                            initial="initial"
-                            whileInView="inView"
-                            whileHover="hover" 
-                            transition={{ duration: 0.12, delay: index * 0.1 }}
-                            viewport={{ once: true }}
-                            className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                          >
-                            <div className="relative aspect-[3/4] overflow-hidden">
-                              <motion.div
-                                className="w-full h-full"
-                                variants={imageFilterVariants}
-                              > 
-                                <img
-                                  src={post.post_image || "/placeholder.png"}
-                                  alt={post.title}
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = "/placeholder.png";
-                                  }}
-                                  className="w-full h-full object-cover"
-                                />
-                              </motion.div>
-                              <div className="absolute top-3 left-3 z-10">
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-md ${getCategoryColor(post.category)} text-white`}
-                                >
-                                  {post.category?.name || "Informasi"}
-                                </span>
-                              </div>
-
-                              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-0"></div>
-                            </div>
-
-                            <div className="p-4">
-                              <h3 className="text-base font-bold mb-1 line-clamp-2 text-gray-800 group-hover:text-red-800 transition-colors">
-                                {post.title}
-                              </h3>
-                              <p className="text-gray-500 text-sm mb-3 line-clamp-2">
-                                {post.content}
-                              </p>
-
-                              <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
-                                <span className="text-xs text-gray-400">
-                                  {post.published_at || post.created_at ? new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric'
-                                  }) : "Recent"}
-                                </span>
-                                <span className={`text-xs font-medium flex items-center text-${getCategoryColor(post.category).replace('bg-', '').replace('-500', '-600')} hover:text-red-700`}>
-                                  Lihat Detail
-                                  <ChevronRight size={14} className="ml-0.5" />
-                                </span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        </Link>
-                      );
-                    })}
+                      </Link>
+                    );
+                  })}
                 </div>
                 {combinedPostsData.length > 0 && (
                   <div className="mt-4 text-right">
@@ -689,7 +744,10 @@ export default function Home() {
                       className="text-red-800 hover:text-red-900 text-sm font-medium transition-colors duration-300 inline-flex items-center group"
                     >
                       Lihat Semua Berita
-                      <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                      <ChevronRight
+                        size={16}
+                        className="ml-1 group-hover:translate-x-1 transition-transform duration-200"
+                      />
                     </Link>
                   </div>
                 )}
@@ -705,7 +763,8 @@ export default function Home() {
             KEGIATAN JURUSAN
           </h2>
           <p className="text-gray-600 text-center mb-6 max-w-2xl mx-auto">
-            Lihat kegiatan yang telah dilaksanakan serta jadwal kegiatan yang akan dilaksanakan oleh Jurusan Teknik Kimia.
+            Lihat kegiatan yang telah dilaksanakan serta jadwal kegiatan yang
+            akan dilaksanakan oleh Jurusan Teknik Kimia.
           </p>
 
           {isLoading && kegiatanData.length === 0 && !kegiatanError ? (
@@ -720,7 +779,9 @@ export default function Home() {
             </div>
           ) : kegiatanData.length === 0 ? (
             <div className="flex justify-center items-center h-64 bg-white rounded-xl shadow-md">
-              <p className="text-gray-500">Belum ada kegiatan yang dipublikasikan.</p>
+              <p className="text-gray-500">
+                Belum ada kegiatan yang dipublikasikan.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -732,19 +793,29 @@ export default function Home() {
                     initial={{ opacity: 0, y: 30 }}
                     variants={cardEntryVariants}
                     whileInView="inView"
-                    whileHover="hover" 
+                    whileHover="hover"
                     transition={{ duration: 0.8, delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1" 
+                    className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                   >
-                    <div className="relative h-60 overflow-hidden"> 
+                    <div className="relative h-60 overflow-hidden">
                       <motion.div
                         className="absolute top-0 left-0 w-full h-full"
                         variants={imageFilterVariants}
-                      > <img
-                          src={(kegiatan.image_urls && kegiatan.image_urls.length > 0 ? kegiatan.image_urls[0] : "/placeholder.png")}
+                      >
+                        {" "}
+                        <img
+                          src={
+                            kegiatan.image_urls &&
+                            kegiatan.image_urls.length > 0
+                              ? kegiatan.image_urls[0]
+                              : "/placeholder.png"
+                          }
                           alt={kegiatan.description || "Gambar Kegiatan"}
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              "/placeholder.png";
+                          }}
                           className="w-full h-full object-cover"
                         />
                       </motion.div>
@@ -752,18 +823,32 @@ export default function Home() {
                     </div>
                     <div className="p-6">
                       <h3
-                        className={`text-lg font-bold mb-2 text-gray-800 group-hover:text-red-800 transition-colors cursor-pointer ${!isExpanded ? 'line-clamp-2' : ''}`}
+                        className={`text-lg font-bold mb-2 text-gray-800 group-hover:text-red-800 transition-colors cursor-pointer ${!isExpanded ? "line-clamp-2" : ""}`}
                         onClick={() => toggleKegiatanExpansion(kegiatan.id)}
-                        title={isExpanded ? "Klik untuk meringkas" : "Klik untuk selengkapnya"}
-                      >
-                        {kegiatan.description ?
-                          (isExpanded ? kegiatan.description : (kegiatan.description.length > 70 ? kegiatan.description.substring(0, 70) + "..." : kegiatan.description))
-                          : <span className="italic text-gray-500">Kegiatan</span>
+                        title={
+                          isExpanded
+                            ? "Klik untuk meringkas"
+                            : "Klik untuk selengkapnya"
                         }
+                      >
+                        {kegiatan.description ? (
+                          isExpanded ? (
+                            kegiatan.description
+                          ) : kegiatan.description.length > 70 ? (
+                            kegiatan.description.substring(0, 70) + "..."
+                          ) : (
+                            kegiatan.description
+                          )
+                        ) : (
+                          <span className="italic text-gray-500">Kegiatan</span>
+                        )}
                       </h3>
                       <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
                         <span className="text-xs text-gray-400">
-                          {new Date(kegiatan.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(kegiatan.created_at).toLocaleDateString(
+                            "id-ID",
+                            { day: "numeric", month: "short", year: "numeric" },
+                          )}
                         </span>
                       </div>
                     </div>
@@ -779,7 +864,10 @@ export default function Home() {
                 className="text-red-800 hover:text-red-900 text-sm font-medium transition-colors duration-300 inline-flex items-center group"
               >
                 Lihat Semua Kegiatan
-                <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                <ChevronRight
+                  size={16}
+                  className="ml-1 group-hover:translate-x-1 transition-transform duration-200"
+                />
               </Link>
             </div>
           )}
@@ -792,7 +880,8 @@ export default function Home() {
             APA KATA ALUMNI?
           </h2>
           <p className="text-gray-600 text-center max-w-2xl mx-auto">
-            Dengarkan pengalaman dan kesan dari para alumni Teknik Kimia Politeknik Negeri Sriwijaya.
+            Dengarkan pengalaman dan kesan dari para alumni Teknik Kimia
+            Politeknik Negeri Sriwijaya.
           </p>
 
           {isLoading && testimoniData.length === 0 && !testimoniError ? (
@@ -802,12 +891,16 @@ export default function Home() {
             </div>
           ) : testimoniError ? (
             <div className="flex flex-col justify-center items-center h-64 bg-red-50 text-red-700 rounded-xl shadow-md p-4">
-              <p className="font-semibold">Tidak dapat menampilkan testimoni.</p>
+              <p className="font-semibold">
+                Tidak dapat menampilkan testimoni.
+              </p>
               <p className="text-sm mt-1">Error: {testimoniError}</p>
             </div>
           ) : testimoniData.length === 0 ? (
             <div className="flex justify-center items-center h-64 bg-gray-50 rounded-xl shadow-md">
-              <p className="text-gray-500">Belum ada testimoni yang dipublikasikan.</p>
+              <p className="text-gray-500">
+                Belum ada testimoni yang dipublikasikan.
+              </p>
             </div>
           ) : (
             <div className="relative w-full mx-auto overflow-hidden py-4">
@@ -827,21 +920,35 @@ export default function Home() {
                         opacity: index === currentTestimonialIndex ? 1 : 0.6,
                         zIndex: index === currentTestimonialIndex ? 10 : 1,
                       }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
                     >
                       <div className="bg-white rounded-xl shadow-lg pt-4 px-4 pb-3 flex flex-col transition-all duration-300 h-full">
                         <div className="flex flex-col sm:flex-row items-start mb-3 w-full">
-                          <div className="relative w-24 md:w-28 rounded-md overflow-hidden shadow-md flex-shrink-0" style={{ aspectRatio: '2/3' }}>
+                          <div
+                            className="relative w-24 md:w-28 rounded-md overflow-hidden shadow-md flex-shrink-0"
+                            style={{ aspectRatio: "2/3" }}
+                          >
                             <img
-                              src={testimoni.photo_url || "/avatar-placeholder.png"}
+                              src={
+                                testimoni.photo_url || "/avatar-placeholder.png"
+                              }
                               alt={testimoni.nama_alumni}
-                              onError={(e) => { (e.target as HTMLImageElement).src = "/avatar-placeholder.png"; }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "/avatar-placeholder.png";
+                              }}
                               className="w-full h-full object-cover"
                             />
                           </div>
                           <div className="sm:ml-4 mt-2 sm:mt-0 flex flex-col flex-grow">
                             <h3 className="text-base md:text-lg font-semibold text-gray-800">
-                              <span className="font-semibold text-gray-800">{testimoni.nama_alumni}</span>
+                              <span className="font-semibold text-gray-800">
+                                {testimoni.nama_alumni}
+                              </span>
                             </h3>
                             {testimoni.alumni?.pekerjaan && (
                               <p className="text-[11px] md:text-xs text-gray-600 mt-0.5 mb-0.5">
@@ -926,14 +1033,12 @@ export default function Home() {
   );
 }
 
-
-
 const AnimatedCounter = ({
   value,
   className,
   formatter = (val) => val.toString(),
   delay = 0,
-  triggerOnView = false
+  triggerOnView = false,
 }: AnimatedCounterProps) => {
   const [count, setCount] = useState(0);
   const counterRef = useRef<HTMLDivElement>(null);
@@ -951,7 +1056,7 @@ const AnimatedCounter = ({
           }
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (counterRef.current) {
@@ -981,7 +1086,9 @@ const AnimatedCounter = ({
         const easeOutQuad = (t: number) => t * (2 - t);
         const easedProgress = easeOutQuad(progress);
 
-        setCount(Math.floor(startValue + easedProgress * (endValue - startValue)));
+        setCount(
+          Math.floor(startValue + easedProgress * (endValue - startValue)),
+        );
 
         if (progress < 1) {
           window.requestAnimationFrame(step);

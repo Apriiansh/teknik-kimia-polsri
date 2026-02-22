@@ -44,16 +44,17 @@ const StrukturOrganisasi: FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch struktur organisasi content from MySQL API
-                try {
-                    const response = await fetch('/api/struktur-organisasi');
-                    const data = await response.json();
-                    
-                    if (data.data) {
-                        setContent(data.data);
-                    }
-                } catch (contentError) {
+                // Fetch struktur organisasi content from Supabase
+                const { data: contentData, error: contentError } = await supabase
+                    .from('struktur_organisasi_content')
+                    .select('id, narasi, gambar')
+                    .order('id', { ascending: true })
+                    .limit(1);
+
+                if (contentError) {
                     console.error('Error fetching content:', contentError);
+                } else if (contentData && contentData.length > 0) {
+                    setContent(contentData[0] as StrukturContent);
                 }
 
                 // Fetch positions
